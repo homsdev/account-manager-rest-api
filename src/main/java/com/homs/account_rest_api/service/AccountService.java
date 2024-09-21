@@ -1,5 +1,7 @@
 package com.homs.account_rest_api.service;
 
+import com.homs.account_rest_api.exception.ResourceNotCreatedException;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.model.Account;
 import com.homs.account_rest_api.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,26 +31,31 @@ public class AccountService {
 
     /**
      * Finds an account into database by the provided id
+     *
      * @param id Unique identifier of {@link Account}
      * @return The {@link Account} associated with the given id
      * @throws RuntimeException if no account is found
      */
     public Account findById(String id) {
-        return accountRepository.findById(id).orElseThrow(RuntimeException::new);
+        return accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Requested account was not found"));
     }
 
     /**
      * Saves new account data into database
+     *
      * @param newAccount {@link Account} object containing the info of the new account
      * @return The {@link Account} persisted in DB
      * @throws RuntimeException if account was not created
      */
     public Account saveAccount(Account newAccount) {
-        return accountRepository.save(newAccount).orElseThrow(RuntimeException::new);
+        return accountRepository.save(newAccount)
+                .orElseThrow(()-> new ResourceNotCreatedException("Failed to create new account"));
     }
 
     /**
      * Deletes account from database by the provided id
+     *
      * @param id Unique identifier of the account to delete
      * @return {@link Integer} > 0 if account was created
      * @throws RuntimeException if account was not created
@@ -56,7 +63,7 @@ public class AccountService {
     public Integer deleteById(String id) {
         Integer affectedRows = accountRepository.deleteById(id);
         if (affectedRows < 1) {
-            throw new RuntimeException();
+            throw new ResourceNotFoundException("Requested account was not found");
         } else {
             return affectedRows;
         }
@@ -64,12 +71,14 @@ public class AccountService {
 
     /**
      * Updates balance information for the given account
+     *
      * @param account {@link Account} containing the updated balance information
      * @return The updated {@link Account}
      * @throws RuntimeException if update operation is not concluded
      */
     public Account updateBalance(Account account) {
-        return accountRepository.updateBalance(account).orElseThrow(RuntimeException::new);
+        return accountRepository.updateBalance(account)
+                .orElseThrow(() -> new ResourceNotFoundException("Requested account was not found"));
     }
 
 }

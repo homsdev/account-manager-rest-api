@@ -3,6 +3,8 @@ package com.homs.account_rest_api.service;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
+import com.homs.account_rest_api.exception.ResourceNotCreatedException;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.model.Account;
 import com.homs.account_rest_api.repository.AccountRepository;
 import org.junit.Before;
@@ -63,6 +65,23 @@ public class AccountServiceTest {
     }
 
     @Test
+    public void saveAccountShouldThrowExceptionWhenFails() {
+        Account expectedResult = Account.builder()
+                .accountId("f048c183-066c-4906-a0be-e5fe08dccd6b")
+                .balance(BigDecimal.valueOf(10_000.00))
+                .alias("New Account").build();
+
+        when(accountRepository.save(eq(expectedResult)))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotCreatedException.class, () ->
+                accountService.saveAccount(expectedResult)
+        );
+
+        verify(accountRepository, atMostOnce()).save(eq(expectedResult));
+    }
+
+    @Test
     public void findByIdShouldReturnAnAccountOnSuccess() {
         String id = "f048c183-066c-4906-a0be-e5fe08dccd6b";
         Account expectedResult = Account.builder()
@@ -95,14 +114,14 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void deleteByIdShouldReturn0AffectedRowsWhenFailedToDelete() {
+    public void deleteByIdShouldThrowExceptionWhenFails() {
         String id = "aaaa-aaaa-aaaa";
         Integer expectedResult = 0;
 
         when(accountRepository.deleteById(eq(id)))
                 .thenReturn(expectedResult);
 
-        assertThrows(RuntimeException.class, () -> {
+        assertThrows(ResourceNotFoundException.class, () -> {
             accountService.deleteById(id);
         });
 
@@ -137,7 +156,7 @@ public class AccountServiceTest {
         when(accountRepository.updateBalance(eq(expectedResult)))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 accountService.updateBalance(expectedResult)
         );
 
