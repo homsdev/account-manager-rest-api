@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Account service class to handle basic CRUD operations
@@ -49,6 +49,7 @@ public class AccountService {
      * @throws RuntimeException if account was not created
      */
     public Account saveAccount(Account newAccount) {
+        newAccount.setAccountId(UUID.randomUUID().toString());
         return accountRepository.save(newAccount)
                 .orElseThrow(()-> new ResourceNotCreatedException("Failed to create new account"));
     }

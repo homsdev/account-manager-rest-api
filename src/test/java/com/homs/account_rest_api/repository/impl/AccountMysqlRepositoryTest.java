@@ -2,7 +2,7 @@ package com.homs.account_rest_api.repository.impl;
 
 import com.homs.account_rest_api.helpers.FieldSetupHelper;
 import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.model.rowmappers.AccountRowMapper;
+import com.homs.account_rest_api.mapper.rowmappers.AccountRowMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,10 +1,10 @@
 package com.homs.account_rest_api.repository.impl;
 
 import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.model.rowmappers.AccountRowMapper;
+import com.homs.account_rest_api.mapper.rowmappers.AccountRowMapper;
 import com.homs.account_rest_api.repository.AccountRepository;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -30,7 +30,7 @@ import java.util.Optional;
  * @see Account
  */
 @Repository
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AccountMysqlRepository implements AccountRepository {
 
     @Value("${account.findAll}")
@@ -44,7 +44,7 @@ public class AccountMysqlRepository implements AccountRepository {
     @Value("${account.findById}")
     private String findByIdQuery;
 
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     /**
      * Retrieves a list of all accounts from the database.
