@@ -26,47 +26,61 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<ApiResponse<Account>> getAllAccounts() {
         List<Account> result = accountService.findAll();
-        ApiResponse<Account> response = ApiResponse.<Account>builder()
-                .data(result)
-                .message(HttpStatus.OK.getReasonPhrase())
-                .code(HttpStatus.OK.value())
-                .success(true)
-                .build();
-        return ResponseEntity.ok(response);
+        if (result.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            ApiResponse<Account> response = ApiResponse.<Account>builder()
+                    .data(result)
+                    .message("Retrieving all accounts")
+                    .code(HttpStatus.OK.value())
+                    .build();
+            return ResponseEntity.ok(response);
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Account> getAccountById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Account>> getAccountById(@PathVariable String id) {
         Account account = accountService.findById(id);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(account);
+
+        ApiResponse<Account> response = ApiResponse.<Account>builder()
+                .data(Collections.singletonList(account))
+                .message("Account found")
+                .code(HttpStatus.OK.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping
-    public ResponseEntity<Account> createNewAccount(
+    public ResponseEntity<ApiResponse<Account>> createNewAccount(
             @RequestBody CreateAccountDto dto
     ) {
         Account newAccount = accountService.saveAccount(accountMapper.toEntity(dto));
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(newAccount);
+        ApiResponse<Account> response = ApiResponse.<Account>builder()
+                .data(Collections.singletonList(newAccount))
+                .message("Account creation successful")
+                .code(HttpStatus.CREATED.value())
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Account> updateAccountBalance(@PathVariable String id, @RequestBody CreateAccountDto dto) {
+    public ResponseEntity<ApiResponse<Account>> updateAccountBalance(@PathVariable String id, @RequestBody CreateAccountDto dto) {
         Account accountToUpdate = accountMapper.toEntity(dto);
         accountToUpdate.setAccountId(id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(accountService.updateBalance(accountToUpdate));
+        Account result = accountService.updateBalance(accountToUpdate);
+        ApiResponse<Account> response = ApiResponse.<Account>builder()
+                .data(Collections.singletonList(result))
+                .message("Account balance updated correctly")
+                .code(HttpStatus.OK.value())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccount(@PathVariable String id) {
         accountService.deleteById(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 
