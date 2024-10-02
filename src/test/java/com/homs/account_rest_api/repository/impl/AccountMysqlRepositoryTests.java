@@ -1,17 +1,17 @@
 package com.homs.account_rest_api.repository.impl;
 
-import com.homs.account_rest_api.helpers.FieldSetupHelper;
 import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.model.rowmappers.AccountRowMapper;
+import com.homs.account_rest_api.mapper.rowmappers.AccountRowMapper;
+import com.homs.account_rest_api.repository.AccountRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.junit4.SpringRunner;
 
 
 import java.math.BigDecimal;
@@ -22,34 +22,23 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 
-@RunWith(MockitoJUnitRunner.class)
-public class AccountMysqlRepositoryTest {
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class AccountMysqlRepositoryTests {
 
-    private final FieldSetupHelper fieldSetupHelper = new FieldSetupHelper();
     private final String VALID_ID = "de2a7490-4c00-492d-bc52-a0c7172eb4ed";
     private Account accountA;
     private Account accountB;
     private List<Account> expectedAccounts;
 
-    @Mock
+    @MockBean
     private NamedParameterJdbcTemplate jdbcTemplate;
 
-    @InjectMocks
-    private AccountMysqlRepository accountMysqlRepository;
+    @Autowired
+    AccountRepository accountRepository;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
-        fieldSetupHelper
-                .setInternalAccountFieldHelper("findAllQuery", "SelectAll", accountMysqlRepository);
-        fieldSetupHelper
-                .setInternalAccountFieldHelper("saveQuery", "saveQuery", accountMysqlRepository);
-        fieldSetupHelper
-                .setInternalAccountFieldHelper("deleteQuery", "deleteQuery", accountMysqlRepository);
-        fieldSetupHelper
-                .setInternalAccountFieldHelper("updateBalanceQuery", "updateBalanceQuery", accountMysqlRepository);
-        fieldSetupHelper
-                .setInternalAccountFieldHelper("findByIdQuery", "findByIdQuery", accountMysqlRepository);
-
         accountA = Account.builder()
                 .accountId("de2a7490-4c00-492d-bc52-a0c7172eb4ed")
                 .alias("Dummy Account A")
@@ -67,7 +56,6 @@ public class AccountMysqlRepositoryTest {
                 .build();
 
         expectedAccounts = Arrays.asList(accountA, accountB, accountC);
-        MockitoAnnotations.openMocks(this);
     }
 
     /**
@@ -79,7 +67,7 @@ public class AccountMysqlRepositoryTest {
         when(jdbcTemplate.query(anyString(), any(AccountRowMapper.class)))
                 .thenReturn(expectedAccounts);
 
-        List<Account> actualAccounts = accountMysqlRepository.findAll();
+        List<Account> actualAccounts = accountRepository.findAll();
 
         assertNotNull(actualAccounts);
         assertEquals(expectedAccounts.size(), actualAccounts.size());
@@ -102,7 +90,7 @@ public class AccountMysqlRepositoryTest {
                 .thenReturn(expectedResult);
 
         //Act
-        Optional<Account> actualResult = accountMysqlRepository.findById(VALID_ID);
+        Optional<Account> actualResult = accountRepository.findById(VALID_ID);
 
         //Assertions
         assertTrue("Returns a valid account", actualResult.isPresent());
@@ -126,7 +114,7 @@ public class AccountMysqlRepositoryTest {
         when(jdbcTemplate.query(anyString(), eq(params), any(AccountRowMapper.class)))
                 .thenReturn(expectedResult);
 
-        Optional<Account> actualResult = accountMysqlRepository.findById(INVALID_ID);
+        Optional<Account> actualResult = accountRepository.findById(INVALID_ID);
 
         assertTrue("Result is empty", actualResult.isEmpty());
         verify(jdbcTemplate, times(1))
@@ -141,7 +129,7 @@ public class AccountMysqlRepositoryTest {
         Optional<Account> expectedResult = Optional.of(accountB);
         when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(1);
 
-        Optional<Account> actualResult = accountMysqlRepository.save(accountB);
+        Optional<Account> actualResult = accountRepository.save(accountB);
 
         assertTrue("Account is saved", actualResult.isPresent());
         assertEquals("Account is saved correctly", expectedResult.get(), actualResult.get());
@@ -155,7 +143,7 @@ public class AccountMysqlRepositoryTest {
     public void shouldReturnEmptyOptionalIfSaveFails() {
         when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(0);
 
-        Optional<Account> actualResult = accountMysqlRepository.save(accountB);
+        Optional<Account> actualResult = accountRepository.save(accountB);
 
         assertTrue(actualResult.isEmpty());
         verify(jdbcTemplate, atMostOnce()).update(anyString(), anyMap());
@@ -169,7 +157,7 @@ public class AccountMysqlRepositoryTest {
         Integer expectedResult = 1;
         when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(1);
 
-        Integer actualResult = accountMysqlRepository.deleteById(VALID_ID);
+        Integer actualResult = accountRepository.deleteById(VALID_ID);
 
         assertEquals(expectedResult, actualResult);
         verify(jdbcTemplate, atMostOnce()).update(anyString(), anyMap());
@@ -187,7 +175,7 @@ public class AccountMysqlRepositoryTest {
 
         BigDecimal updatedBalance = BigDecimal.valueOf(50_000.00);
         accountB.setBalance(updatedBalance);
-        Optional<Account> actualResult = accountMysqlRepository.updateBalance(accountB);
+        Optional<Account> actualResult = accountRepository.updateBalance(accountB);
 
         assertTrue(actualResult.isPresent());
         assertEquals(updatedBalance, actualResult.get().getBalance());
@@ -203,7 +191,7 @@ public class AccountMysqlRepositoryTest {
     public void shouldReturnEmptyOptionalWhenUpdateFails() {
         when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(0);
 
-        Optional<Account> actualResult = accountMysqlRepository.updateBalance(accountB);
+        Optional<Account> actualResult = accountRepository.updateBalance(accountB);
 
         assertTrue(actualResult.isEmpty());
 
