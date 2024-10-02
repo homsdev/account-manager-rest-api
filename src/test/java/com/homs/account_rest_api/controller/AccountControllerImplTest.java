@@ -1,10 +1,7 @@
 package com.homs.account_rest_api.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.homs.account_rest_api.dto.CreateAccountDto;
 import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.model.ApiResponse;
 import com.homs.account_rest_api.service.AccountService;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,20 +12,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -37,13 +30,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
-public class AccountControllerTest {
+public class AccountControllerImplTest {
 
     @MockBean
     private AccountService accountService;
-
-    @Autowired
-    private AccountController accountController;
 
     @Autowired
     private MockMvc mockMvc;
