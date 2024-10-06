@@ -1,6 +1,7 @@
-package com.homs.account_rest_api.controller;
+package com.homs.account_rest_api.controller.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.homs.account_rest_api.dto.CreateAccountDto;
 import com.homs.account_rest_api.model.Account;
 import com.homs.account_rest_api.service.AccountService;
 import org.junit.Before;
@@ -110,10 +111,14 @@ public class AccountControllerImplTest {
     @Test
     public void createNewAccount() throws Exception {
 
+        CreateAccountDto dto = new CreateAccountDto();
+        dto.setAccountBalance(account3.getBalance());
+        dto.setAccountAlias(account3.getAlias());
+
         when(accountService.saveAccount(any(Account.class)))
                 .thenReturn(account3);
 
-        String reqBody = new ObjectMapper().writeValueAsString(account3);
+        String reqBody = new ObjectMapper().writeValueAsString(dto);
 
         mockMvc.perform(post("/api/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
