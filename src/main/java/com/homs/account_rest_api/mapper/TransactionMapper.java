@@ -9,6 +9,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TransactionMapper {

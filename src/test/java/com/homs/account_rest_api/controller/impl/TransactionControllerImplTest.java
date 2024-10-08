@@ -3,6 +3,7 @@ package com.homs.account_rest_api.controller.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.homs.account_rest_api.dto.CreateTransactionDTO;
 import com.homs.account_rest_api.enums.TransactionType;
+import com.homs.account_rest_api.exception.ResourceNotCreatedException;
 import com.homs.account_rest_api.model.Account;
 import com.homs.account_rest_api.model.Transaction;
 import com.homs.account_rest_api.service.TransactionService;
@@ -69,7 +70,118 @@ public class TransactionControllerImplTest {
 
         String reqBody = new ObjectMapper().writeValueAsString(dto);
 
-        mockMvc.perform(post("/api/transactions/" + mockAccount.getAccountId())
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(reqBody)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.data[0].amount").value(mockTransactionA.getAmount()));
+    }
+
+    @Test
+    public void postTransactionEndsBAD() throws Exception {
+        when(transactionService.saveTransaction(any(Transaction.class), anyString()))
+                .thenThrow(new ResourceNotCreatedException("Error"));
+
+        CreateTransactionDTO dto = new CreateTransactionDTO();
+        dto.setDescription(mockTransactionA.getAlias());
+        dto.setTransactionType(mockTransactionA.getType().getValue());
+        dto.setDate(LocalDate.now().toString());
+        dto.setAmount(BigDecimal.valueOf(5_000.00));
+
+        String reqBody = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(reqBody)
+                )
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", Matchers.hasSize(0)));
+    }
+
+    @Test
+    public void postTransactionShouldFailIfDateIsNotValid() throws Exception {
+        CreateTransactionDTO dto = new CreateTransactionDTO();
+        dto.setDescription(mockTransactionA.getAlias());
+        dto.setTransactionType(mockTransactionA.getType().getValue());
+        dto.setDate("2023-02-29");
+        dto.setAmount(BigDecimal.valueOf(5_000.00));
+
+        String reqBody = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(reqBody)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", Matchers.hasSize(0)));
+
+        dto.setDate("02-14-1999");
+        reqBody = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(reqBody)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", Matchers.hasSize(0)));
+    }
+
+    @Test
+    public void postTransactionShouldFailIfTypeIsIncorrect() throws Exception {
+        CreateTransactionDTO dto = new CreateTransactionDTO();
+        dto.setDescription(mockTransactionA.getAlias());
+        dto.setTransactionType("EXP");
+        dto.setDate(LocalDate.now().toString());
+        dto.setAmount(BigDecimal.valueOf(5_000.00));
+
+        String reqBody = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(reqBody)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", Matchers.hasSize(0)));
+
+
+        dto.setTransactionType("INC");
+        reqBody = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(reqBody)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", Matchers.hasSize(0)));
+
+
+    }
+
+    @Test
+    public void postTransactionShouldEndOkWithDifferentTransactionTypeInputs() throws Exception {
+        CreateTransactionDTO dto = new CreateTransactionDTO();
+        dto.setDescription(mockTransactionA.getAlias());
+        dto.setTransactionType("expense");
+        dto.setDate(LocalDate.now().toString());
+        dto.setAmount(BigDecimal.valueOf(5_000.00));
+
+        String reqBody = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(reqBody)
@@ -78,6 +190,17 @@ public class TransactionControllerImplTest {
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data", Matchers.hasSize(1)));
 
-        //verify(transactionService).saveTransaction(any(Transaction.class), eq(mockAccount.getAccountId()));
+
+        dto.setTransactionType("income");
+        reqBody = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/" + mockAccount.getAccountId() + "/transaction")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(reqBody)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", Matchers.hasSize(1)));
     }
 }

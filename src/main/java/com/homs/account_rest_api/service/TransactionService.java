@@ -15,7 +15,10 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-
+/**
+ * Transaction service class provides methods to perform CRUD
+ * operations over transactions
+ */
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
@@ -23,6 +26,19 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
 
+    /**
+     * Saves the specified transaction
+     * <p>
+     * This method saves a new {@link Transaction} associated to an existing account into database
+     * If {@link TransactionType} is EXPENSE it subtracts transaction amount from the associated account balance
+     * else if is an INCOME ads the transaction amount to the associated account balance
+     *
+     * @param transaction {@link Transaction} object to be saved
+     * @param accountId   {@link String} Id from the account associated with the transaction
+     * @return Saved {@link Transaction} object
+     * @throws ResourceNotFoundException   if the associated account does not exist
+     * @throws ResourceNotCreatedException if there is an error while persisting the transaction
+     */
     @Transactional
     public Transaction saveTransaction(Transaction transaction, String accountId) {
 

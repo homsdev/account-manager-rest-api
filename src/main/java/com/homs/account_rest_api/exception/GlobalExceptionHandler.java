@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("Resource was not created")
                 .build();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
@@ -45,6 +45,8 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
+
+        System.out.println(errors);
         ApiResponseDTO<Object> errorResponse = ApiResponseDTO.<Object>builder()
                 .data(Collections.emptyList())
                 .code(HttpStatus.BAD_REQUEST.value())

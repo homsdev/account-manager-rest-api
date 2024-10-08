@@ -2,6 +2,7 @@ package com.homs.account_rest_api.dto;
 
 
 import com.homs.account_rest_api.annotations.ValidDate;
+import com.homs.account_rest_api.annotations.ValidType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -17,9 +18,10 @@ public class CreateTransactionDTO {
     private BigDecimal amount;
 
     @NotBlank
+    @ValidType(type = "TRANSACTION_TYPE")
     private String transactionType;
 
     @NotBlank
-    @ValidDate(format = "yyyy-mm-dd")
+    @ValidDate(format = "yyyy-MM-dd")
     private String date;
 }

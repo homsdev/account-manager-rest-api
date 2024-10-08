@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 public class DateValidator implements ConstraintValidator<ValidDate, String> {
 
@@ -22,7 +23,10 @@ public class DateValidator implements ConstraintValidator<ValidDate, String> {
         if (dateStr == null || dateStr.isEmpty()) {
             return false;
         }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format)
+                .withResolverStyle(ResolverStyle.STRICT);
+
         try {
             LocalDate.parse(dateStr, formatter);
             return true;
