@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.exception;
 
+import com.homs.account_rest_api.controller.AccountController;
 import com.homs.account_rest_api.model.ApiResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -14,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@ControllerAdvice
+@ControllerAdvice(assignableTypes = AccountController.class)
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ResourceNotFoundException.class)
@@ -34,7 +35,7 @@ public class GlobalExceptionHandler {
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("Resource was not created")
                 .build();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
@@ -45,6 +46,8 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
+
+        System.out.println(errors);
         ApiResponseDTO<Object> errorResponse = ApiResponseDTO.<Object>builder()
                 .data(Collections.emptyList())
                 .code(HttpStatus.BAD_REQUEST.value())
