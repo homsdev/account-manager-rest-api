@@ -1,15 +1,16 @@
-package com.homs.account_rest_api.repository.impl;
+package com.homs.account_rest_api.transactions.repository;
 
-import com.homs.account_rest_api.model.Transaction;
-import com.homs.account_rest_api.repository.TransactionRepository;
+import com.homs.account_rest_api.transactions.model.Transaction;
+import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
+
+import static com.homs.account_rest_api.utils.TransactionDataValidation.isValid;
 
 @Repository
 @RequiredArgsConstructor
@@ -30,7 +31,10 @@ public class TransactionMysqlRepository implements TransactionRepository {
      * or an empty {@link Optional} if transaction was not saved
      */
     @Override
-    public Optional<Transaction> saveTransaction(Transaction transaction) {
+    public Optional<Transaction> saveTransaction(final Transaction transaction){
+
+        if (!isValid(transaction)) throw new TransactionInvalidData("Missing transaction data");
+
         Map<String, Object> params = new HashMap<>();
         params.put("transactionId", transaction.getTransactionId());
         params.put("amount", transaction.getAmount());
@@ -42,4 +46,6 @@ public class TransactionMysqlRepository implements TransactionRepository {
         int result = jdbcTemplate.update(saveTransactionQuery, params);
         return result > 0 ? Optional.of(transaction) : Optional.empty();
     }
+
+
 }

@@ -5,5 +5,6 @@ spring:
         url: ${DB.URL}
         username: ${DB.USER}
         password: ${DB.PASS}
+        driver-class-name: org.mariadb.jdbc.Driver
         hikari:
             maximum-pool-size: 1 

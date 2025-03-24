@@ -1,6 +1,6 @@
-package com.homs.account_rest_api.repository;
+package com.homs.account_rest_api.transactions.repository;
 
-import com.homs.account_rest_api.model.Transaction;
+import com.homs.account_rest_api.transactions.model.Transaction;
 
 import java.util.Optional;
 

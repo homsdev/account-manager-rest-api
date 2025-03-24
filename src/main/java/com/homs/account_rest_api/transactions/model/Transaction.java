@@ -1,6 +1,7 @@
-package com.homs.account_rest_api.model;
+package com.homs.account_rest_api.transactions.model;
 
 import com.homs.account_rest_api.enums.TransactionType;
+import com.homs.account_rest_api.model.Account;
 import lombok.Builder;
 import lombok.Data;
 

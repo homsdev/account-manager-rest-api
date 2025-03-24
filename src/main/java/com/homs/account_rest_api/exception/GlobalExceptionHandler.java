@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.exception;
 
+import com.homs.account_rest_api.controller.AccountController;
 import com.homs.account_rest_api.model.ApiResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -14,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@ControllerAdvice
+@ControllerAdvice(assignableTypes = AccountController.class)
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ResourceNotFoundException.class)
