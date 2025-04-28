@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 @Data
 @Builder
 @AllArgsConstructor

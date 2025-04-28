@@ -14,6 +14,7 @@ import java.util.UUID;
  * Account service class to handle basic CRUD operations
  * for domain {@link Account}
  */
+@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 public class AccountService {

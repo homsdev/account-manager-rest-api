@@ -26,8 +26,8 @@ import static org.mockito.Mockito.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
+@SuppressWarnings("unused")
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
@@ -62,7 +62,7 @@ public class AccountControllerImplTest {
 
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         this.mockAccountList.addAll(Arrays.asList(account1, account2, account3));
     }
 
@@ -82,7 +82,7 @@ public class AccountControllerImplTest {
     @Test
     public void getAllAccountsShouldReturnNoContentWhenThereAreNotAccounts() throws Exception {
         when(accountService.findAll())
-                .thenReturn(Collections.<Account>emptyList());
+                .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/accounts"))
                 .andExpect(status().isNoContent());

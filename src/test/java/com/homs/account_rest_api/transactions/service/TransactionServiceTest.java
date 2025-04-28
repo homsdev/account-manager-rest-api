@@ -135,9 +135,7 @@ public class TransactionServiceTest {
         when(transactionRepository.saveTransaction(any()))
                 .thenReturn(Optional.of(sampleTransaction));
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            transactionService.saveTransaction(sampleTransaction, sampleAccount.getAccountId());
-        });
+        assertThrows(ResourceNotFoundException.class, () -> transactionService.saveTransaction(sampleTransaction, sampleAccount.getAccountId()));
 
         verify(transactionRepository, never()).saveTransaction(any());
     }

@@ -5,8 +5,6 @@ import com.homs.account_rest_api.model.Account;
 import com.homs.account_rest_api.model.ApiResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
+@SuppressWarnings("unused")
 @Tag(name = "Account", description = "Account api")
 public interface AccountController {
 
@@ -39,7 +38,7 @@ public interface AccountController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
     })
-    public ResponseEntity<ApiResponseDTO<Account>> getAccountById(@PathVariable String id);
+     ResponseEntity<ApiResponseDTO<Account>> getAccountById(@PathVariable String id);
 
     @Operation(
             summary = "Creates an account",
@@ -47,7 +46,7 @@ public interface AccountController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Successful operation")
     })
-    public ResponseEntity<ApiResponseDTO<Account>> createNewAccount(
+     ResponseEntity<ApiResponseDTO<Account>> createNewAccount(
             @RequestBody @Valid CreateAccountDto dto
     );
 
@@ -57,7 +56,7 @@ public interface AccountController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation")
     })
-    public ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance(
+     ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance(
             @PathVariable String id, @RequestBody CreateAccountDto dto);
 
     @Operation(
@@ -67,6 +66,6 @@ public interface AccountController {
             @ApiResponse(responseCode = "204", description = "Succesful Operation",
                     content = @Content)
     })
-    public ResponseEntity<Void> deleteAccount(@PathVariable String id);
+     ResponseEntity<Void> deleteAccount(@PathVariable String id);
 
 }

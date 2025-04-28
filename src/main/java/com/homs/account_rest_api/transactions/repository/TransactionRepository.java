@@ -21,5 +21,5 @@ public interface TransactionRepository {
      * @return an {@link Optional} containing the saved transaction
      * or an empty {@link Optional} if save operation fails
      */
-    public Optional<Transaction> saveTransaction(Transaction transaction);
+    Optional<Transaction> saveTransaction(Transaction transaction);
 }
