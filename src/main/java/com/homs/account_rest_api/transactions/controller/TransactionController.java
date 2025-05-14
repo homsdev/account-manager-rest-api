@@ -15,7 +15,7 @@ public interface TransactionController {
             summary = "Saves a transaction",
             description = "Saves transaction data in datasource"
     )
-    public ResponseEntity<?> createTransaction(
-            @PathVariable String accountId,@Valid @RequestBody CreateTransactionDTO dto
+    ResponseEntity<?> createTransaction(
+            @PathVariable String accountId, @Valid @RequestBody CreateTransactionDTO dto
     );
 }

@@ -4,11 +4,10 @@ import com.homs.account_rest_api.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotCreatedException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.model.Account;
+import com.homs.account_rest_api.repository.AccountRepository;
 import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
 import com.homs.account_rest_api.transactions.model.Transaction;
-import com.homs.account_rest_api.repository.AccountRepository;
 import com.homs.account_rest_api.transactions.repository.TransactionRepository;
-import com.homs.account_rest_api.utils.TransactionDataValidation;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,8 +15,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
-
-import static com.homs.account_rest_api.utils.TransactionDataValidation.*;
 
 /**
  * Transaction service class provides methods to perform CRUD

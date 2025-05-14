@@ -29,6 +29,7 @@ import java.util.Optional;
  * @see AccountRepository
  * @see Account
  */
+@SuppressWarnings("unused")
 @Repository
 @RequiredArgsConstructor
 public class AccountMysqlRepository implements AccountRepository {

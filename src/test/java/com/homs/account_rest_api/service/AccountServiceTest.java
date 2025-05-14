@@ -7,7 +7,6 @@ import com.homs.account_rest_api.exception.ResourceNotCreatedException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.model.Account;
 import com.homs.account_rest_api.repository.AccountRepository;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("unused")
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class AccountServiceTest {
@@ -30,10 +30,6 @@ public class AccountServiceTest {
     @Autowired
     private AccountService accountService;
 
-    @Before
-    public void setUp() throws Exception {
-        //
-    }
 
     @Test
     public void findAllShouldReturnAListOfAccounts() {
@@ -121,9 +117,7 @@ public class AccountServiceTest {
         when(accountRepository.deleteById(eq(id)))
                 .thenReturn(expectedResult);
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            accountService.deleteById(id);
-        });
+        assertThrows(ResourceNotFoundException.class, () -> accountService.deleteById(id));
 
         verify(accountRepository, atMostOnce()).deleteById(eq(id));
     }

@@ -3,16 +3,15 @@ package com.homs.account_rest_api.exception;
 import com.homs.account_rest_api.controller.AccountController;
 import com.homs.account_rest_api.model.ApiResponseDTO;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice(assignableTypes = AccountController.class)
@@ -20,7 +19,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ResourceNotFoundException.class)
     public ResponseEntity<ApiResponseDTO<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        ApiResponseDTO<Object> errorResponse = ApiResponseDTO.<Object>builder()
+        ApiResponseDTO<Object> errorResponse = ApiResponseDTO.builder()
                 .data(Collections.emptyList())
                 .code(HttpStatus.NOT_FOUND.value())
                 .message("Resource not found")
@@ -30,7 +29,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ResourceNotCreatedException.class)
     public ResponseEntity<ApiResponseDTO<Object>> handleResourceNotCreated(ResourceNotCreatedException ex) {
-        ApiResponseDTO<Object> errorResponse = ApiResponseDTO.<Object>builder()
+        ApiResponseDTO<Object> errorResponse = ApiResponseDTO.builder()
                 .data(Collections.emptyList())
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("Resource was not created")
@@ -47,9 +46,8 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        System.out.println(errors);
-        ApiResponseDTO<Object> errorResponse = ApiResponseDTO.<Object>builder()
-                .data(Collections.emptyList())
+        ApiResponseDTO<Object> errorResponse = ApiResponseDTO.builder()
+                .data(new ArrayList<>(errors.values()))
                 .code(HttpStatus.BAD_REQUEST.value())
                 .message("ERROR: There are missing parameters")
                 .build();
