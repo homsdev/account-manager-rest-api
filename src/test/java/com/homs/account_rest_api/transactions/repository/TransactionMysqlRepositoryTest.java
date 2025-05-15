@@ -93,4 +93,15 @@ public class TransactionMysqlRepositoryTest {
     public void shouldThrowErrorWhenTransactionIsNull() {
         transactionRepository.saveTransaction(null);
     }
+
+    @Test
+    public void getAllTransactionsByMonth() {
+        //TODO: configure mock call to DB
+        //TODO: Assert transactions are received correctly
+    }
+
+    public void getAllTransactionsByMonth_shouldReturnEmptyListWithNoSelectedAccount(){
+        //TODO: configure mock call to DB
+        //TODO: Assert list is empty
+    }
 }
