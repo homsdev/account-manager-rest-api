@@ -19,6 +19,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,7 +48,7 @@ public class TransactionServiceTest {
     private final BigDecimal accountBalanceTest = BigDecimal.valueOf(10_500.50);
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         sampleAccount = Account.builder()
                 .accountId(UUID.randomUUID().toString())
                 .alias("Account A")
@@ -78,8 +81,10 @@ public class TransactionServiceTest {
         when(accountRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
+        String accountId = sampleAccount.getAccountId();
+
         assertThrows(ResourceNotFoundException.class, () ->
-                transactionService.saveTransaction(sampleTransaction, sampleAccount.getAccountId())
+                transactionService.saveTransaction(sampleTransaction, accountId)
         );
 
         verify(accountRepository, never()).updateBalance(any());
@@ -98,7 +103,6 @@ public class TransactionServiceTest {
         when(transactionRepository.saveTransaction(any()))
                 .thenReturn(Optional.of(sampleIncomeTransaction));
 
-        //Execution
         transactionService.saveTransaction(sampleIncomeTransaction, sampleAccount.getAccountId());
 
         ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
@@ -135,7 +139,9 @@ public class TransactionServiceTest {
         when(transactionRepository.saveTransaction(any()))
                 .thenReturn(Optional.of(sampleTransaction));
 
-        assertThrows(ResourceNotFoundException.class, () -> transactionService.saveTransaction(sampleTransaction, sampleAccount.getAccountId()));
+        String accountId = sampleAccount.getAccountId();
+
+        assertThrows(ResourceNotFoundException.class, () -> transactionService.saveTransaction(sampleTransaction, accountId));
 
         verify(transactionRepository, never()).saveTransaction(any());
     }
@@ -162,5 +168,48 @@ public class TransactionServiceTest {
         transactionService.saveTransaction(
                 Transaction.builder().build(),
                 null);
+    }
+
+    @Test
+    public void getAllTransactionsByMonthAndYearShouldReturnListOfTransactions() {
+        Transaction a = Transaction.builder().build();
+        Transaction b = Transaction.builder().build();
+        Transaction c = Transaction.builder().build();
+
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.of(sampleAccount));
+        when(transactionRepository.getAllTransactionsByMonth(anyString(),any(Month.class),any(Year.class)))
+                .thenReturn(List.of(a,b,c));
+
+        List<Transaction> result = transactionService.getAllTransactionsByMonthAndYear(
+                Month.APRIL, Year.now(), "accountId"
+        );
+
+        assertEquals(3,result.size());
+    }
+
+    @Test()
+    public void getAllTransactionsByMonthAndYearShouldThrowResourceNotFoundIfInvalidAccount() {
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.empty());
+
+        Year currentYear = Year.now();
+
+        assertThrows(ResourceNotFoundException.class,()-> transactionService.getAllTransactionsByMonthAndYear(
+                Month.JUNE, currentYear, ""
+        ));
+    }
+
+    @Test
+    public void getAllTransactionsByMonthAndYearShouldReturnEmptyListIfCurrentAccountDoesNoHaveTransactions() {
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.of(sampleAccount));
+
+        Year currentYear = Year.now();
+
+        List<Transaction> transactions =
+                transactionService.getAllTransactionsByMonthAndYear(Month.AUGUST, currentYear, "accountId");
+
+        assertTrue(transactions.isEmpty());
     }
 }
