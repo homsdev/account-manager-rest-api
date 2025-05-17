@@ -2,7 +2,6 @@ package com.homs.account_rest_api.transactions.mapper;
 
 import com.homs.account_rest_api.enums.TransactionType;
 import com.homs.account_rest_api.transactions.model.Transaction;
-import com.homs.account_rest_api.transactions.model.TransactionMapper;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;

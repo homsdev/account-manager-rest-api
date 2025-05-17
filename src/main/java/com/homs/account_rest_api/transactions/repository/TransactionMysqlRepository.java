@@ -39,7 +39,7 @@ public class TransactionMysqlRepository implements TransactionRepository {
     @Override
     public Optional<Transaction> saveTransaction(final Transaction transaction){
 
-        if (!isValid(transaction)) throw new TransactionInvalidData("Missing transaction data");
+        if (!Boolean.TRUE.equals(isValid(transaction))) throw new TransactionInvalidData("Missing transaction data");
 
         Map<String, Object> params = new HashMap<>();
         params.put("transactionId", transaction.getTransactionId());
@@ -53,6 +53,13 @@ public class TransactionMysqlRepository implements TransactionRepository {
         return result > 0 ? Optional.of(transaction) : Optional.empty();
     }
 
+    /**
+     * Retrieves all transactions by the given month and year
+     * @param accountId {@link String}
+     * @param month {@link Month}
+     * @param year {@link Year}
+     * @return
+     */
     @Override
     public List<Transaction> getAllTransactionsByMonth(String accountId,Month month, Year year) {
         if(accountId.isEmpty()){

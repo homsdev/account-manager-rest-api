@@ -2,6 +2,7 @@ package com.homs.account_rest_api.transactions.repository;
 
 import com.homs.account_rest_api.enums.TransactionType;
 import com.homs.account_rest_api.model.Account;
+import com.homs.account_rest_api.transactions.mapper.TransactionRowMapper;
 import com.homs.account_rest_api.transactions.model.Transaction;
 import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
 import org.junit.Before;
@@ -16,12 +17,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.Month;
+import java.time.Year;
+import java.util.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -95,13 +97,31 @@ public class TransactionMysqlRepositoryTest {
     }
 
     @Test
-    public void getAllTransactionsByMonth() {
-        //TODO: configure mock call to DB
-        //TODO: Assert transactions are received correctly
+    public void getAllTransactionsByMonth_shouldReturnRetrievedTransactionFromDB() {
+
+        Transaction a = Transaction.builder().build();
+        Transaction b = Transaction.builder().build();
+        Transaction c = Transaction.builder().build();
+        List<Transaction> expectedTransactions = List.of(a,b,c);
+
+        Map<String,Object> expectedQueryParams = new HashMap<>();
+        expectedQueryParams.put("accountId","sampleId");
+        expectedQueryParams.put("year",2025);
+        expectedQueryParams.put("month",12);
+
+        when(jdbcTemplate.query(anyString(),anyMap(),any(TransactionRowMapper.class)))
+                .thenReturn(expectedTransactions);
+        List<Transaction> result = transactionRepository
+                .getAllTransactionsByMonth("sampleId", Month.DECEMBER, Year.now());
+        assertEquals(3,result.size());
+        verify(jdbcTemplate).query(anyString(),eq(expectedQueryParams),any(TransactionRowMapper.class));
     }
 
+    @Test
     public void getAllTransactionsByMonth_shouldReturnEmptyListWithNoSelectedAccount(){
-        //TODO: configure mock call to DB
-        //TODO: Assert list is empty
+        List<Transaction> result = transactionRepository
+                .getAllTransactionsByMonth("",Month.APRIL,Year.now());
+        assertEquals(0,result.size());
+        assertTrue(result.isEmpty());
     }
 }

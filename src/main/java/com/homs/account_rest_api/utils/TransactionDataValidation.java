@@ -8,6 +8,10 @@ import java.util.Objects;
 
 public class TransactionDataValidation {
 
+    private TransactionDataValidation(){
+
+    }
+
     /**
      * Validates the given {@link Transaction} object by checking if all required fields are non-null.
      * The fields that are checked for null values are:
