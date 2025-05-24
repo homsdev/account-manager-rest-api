@@ -1,12 +1,17 @@
 package com.homs.account_rest_api.transactions.controller;
 
+import com.homs.account_rest_api.dto.ApiResponse;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
+import com.homs.account_rest_api.transactions.model.Transaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "Transaction", description = "Transaction API")
 public interface TransactionController {
@@ -15,7 +20,18 @@ public interface TransactionController {
             summary = "Saves a transaction",
             description = "Saves transaction data in datasource"
     )
-    ResponseEntity<?> createTransaction(
+    ResponseEntity<ApiResponse<Transaction>> createTransaction(
             @PathVariable String accountId, @Valid @RequestBody CreateTransactionDTO dto
     );
+
+
+    @Operation(
+            summary = "Retrieves transactions",
+            description = "Retrieves transactions in a given month and year"
+    )
+    ResponseEntity<ApiResponse<Transaction>> getTransactionsByMonthAndYear(
+            @PathVariable @NotBlank String accountId,
+            @RequestParam @NotNull String month,
+            @RequestParam @NotNull String year
+            );
 }

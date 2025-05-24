@@ -3,6 +3,8 @@ package com.homs.account_rest_api.transactions.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.homs.account_rest_api.enums.TransactionType;
+import com.homs.account_rest_api.exception.ResourceNotCreatedException;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.model.Account;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
 import com.homs.account_rest_api.transactions.model.Transaction;
@@ -12,8 +14,10 @@ import lombok.extern.java.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -24,12 +28,16 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -55,7 +63,7 @@ public class TransactionControllerImplTest {
     private CreateTransactionDTO sampleDTO;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         sampleAccount = Account.builder()
                 .accountId(UUID.randomUUID().toString())
                 .balance(BigDecimal.valueOf(10_000))
@@ -181,6 +189,58 @@ public class TransactionControllerImplTest {
                                 .content(objectMapper.writeValueAsString(payload))
                 ).andExpect(status().isBadRequest())
                 .andReturn();
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void getTransactionsByMonthAndYearShouldReturn400ForInvalidData() throws Exception {
+        MvcResult resultBadMonth = mockMvc.perform(
+                get("/api/{accountId}/transaction?month=mayo&year=2025", sampleAccount.getAccountId())
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isBadRequest())
+                .andReturn();
+        log.info(resultBadMonth.getResponse().getContentAsString());
+
+        MvcResult resultBadYear = mockMvc.perform(
+                get("/api/{accountId}/transaction?month=june&year=NAMCO", sampleAccount.getAccountId())
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isBadRequest())
+                .andReturn();
+        log.info(resultBadYear.getResponse().getContentAsString());
+
+        MvcResult resultNotAccountId = mockMvc.perform(
+                get("/api/{accountId}/transaction?month=june&year=NAMCO", "")
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound())
+                .andReturn();
+        log.info(resultNotAccountId.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void getTransactionsByMonthAndYearShouldThrowExceptionWhenAccountDoesNotExist() throws Exception {
+        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class),any(Year.class),anyString()))
+                .thenThrow(new ResourceNotFoundException("Invalid account data"));
+
+        MvcResult result = mockMvc.perform(
+                get("/api/{accountId}/transaction?month=june&year=2025", sampleAccount.getAccountId())
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNotFound())
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void getTransactionsByMonthAndYearReturnsListOfTransactions() throws Exception{
+        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class),any(Year.class),anyString()))
+                .thenReturn(List.of(sampleTransaction));
+
+        MvcResult result = mockMvc.perform(
+                        get("/api/{accountId}/transaction?month=june&year=2025", sampleAccount.getAccountId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk())
+                .andReturn();
+
         log.info(result.getResponse().getContentAsString());
     }
 }
