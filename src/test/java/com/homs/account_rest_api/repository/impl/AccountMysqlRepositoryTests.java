@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 public class AccountMysqlRepositoryTests {
 
-    private final String VALID_ID = "de2a7490-4c00-492d-bc52-a0c7172eb4ed";
+    private final String validId = "de2a7490-4c00-492d-bc52-a0c7172eb4ed";
     private Account accountA;
     private Account accountB;
     private List<Account> expectedAccounts;
@@ -38,7 +38,7 @@ public class AccountMysqlRepositoryTests {
     AccountRepository accountRepository;
 
     @Before
-    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp(){
         accountA = Account.builder()
                 .accountId("de2a7490-4c00-492d-bc52-a0c7172eb4ed")
                 .alias("Dummy Account A")
@@ -84,17 +84,17 @@ public class AccountMysqlRepositoryTests {
         List<Account> expectedResult = Collections.singletonList(accountA);
 
         Map<String, Object> params = new HashMap<>();
-        params.put("accountId", VALID_ID);
+        params.put("accountId", validId);
         //Prepare
         when(jdbcTemplate.query(anyString(), eq(params), any(AccountRowMapper.class)))
                 .thenReturn(expectedResult);
 
         //Act
-        Optional<Account> actualResult = accountRepository.findById(VALID_ID);
+        Optional<Account> actualResult = accountRepository.findById(validId);
 
         //Assertions
         assertTrue("Returns a valid account", actualResult.isPresent());
-        assertEquals("Returned account has the correct alias", VALID_ID, actualResult.get().getAccountId());
+        assertEquals("Returned account has the correct alias", validId, actualResult.get().getAccountId());
 
         verify(jdbcTemplate, atMostOnce()).query(anyString(), eq(params), any(AccountRowMapper.class));
     }
@@ -108,13 +108,13 @@ public class AccountMysqlRepositoryTests {
         List<Account> expectedResult = Collections.emptyList();
 
         Map<String, Object> params = new HashMap<>();
-        String INVALID_ID = "ssdff-sssss--ssss";
-        params.put("accountId", INVALID_ID);
+        String invalidId = "ssdff-sssss--ssss";
+        params.put("accountId", invalidId);
 
         when(jdbcTemplate.query(anyString(), eq(params), any(AccountRowMapper.class)))
                 .thenReturn(expectedResult);
 
-        Optional<Account> actualResult = accountRepository.findById(INVALID_ID);
+        Optional<Account> actualResult = accountRepository.findById(invalidId);
 
         assertTrue("Result is empty", actualResult.isEmpty());
         verify(jdbcTemplate, times(1))
@@ -157,7 +157,7 @@ public class AccountMysqlRepositoryTests {
         Integer expectedResult = 1;
         when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(1);
 
-        Integer actualResult = accountRepository.deleteById(VALID_ID);
+        Integer actualResult = accountRepository.deleteById(validId);
 
         assertEquals(expectedResult, actualResult);
         verify(jdbcTemplate, atMostOnce()).update(anyString(), anyMap());

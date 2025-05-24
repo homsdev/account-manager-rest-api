@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.repository;
 
+import com.homs.account_rest_api.transactions.mapper.TransactionRowMapper;
 import com.homs.account_rest_api.transactions.model.Transaction;
 import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 
+import java.time.Month;
+import java.time.Year;
 import java.util.*;
 
 import static com.homs.account_rest_api.utils.TransactionDataValidation.isValid;
@@ -18,6 +21,9 @@ public class TransactionMysqlRepository implements TransactionRepository {
 
     @Value("${transaction.save}")
     private String saveTransactionQuery;
+
+    @Value("${transaction.filterByDate}")
+    private String filterTransactionsByDate;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -33,7 +39,7 @@ public class TransactionMysqlRepository implements TransactionRepository {
     @Override
     public Optional<Transaction> saveTransaction(final Transaction transaction){
 
-        if (!isValid(transaction)) throw new TransactionInvalidData("Missing transaction data");
+        if (!Boolean.TRUE.equals(isValid(transaction))) throw new TransactionInvalidData("Missing transaction data");
 
         Map<String, Object> params = new HashMap<>();
         params.put("transactionId", transaction.getTransactionId());
@@ -45,6 +51,26 @@ public class TransactionMysqlRepository implements TransactionRepository {
 
         int result = jdbcTemplate.update(saveTransactionQuery, params);
         return result > 0 ? Optional.of(transaction) : Optional.empty();
+    }
+
+    /**
+     * Retrieves all transactions by the given month and year
+     * @param accountId {@link String}
+     * @param month {@link Month}
+     * @param year {@link Year}
+     * @return
+     */
+    @Override
+    public List<Transaction> getAllTransactionsByMonth(String accountId,Month month, Year year) {
+        if(accountId.isEmpty()){
+            return Collections.emptyList();
+        }
+        Map<String,Object> params = new HashMap<>();
+        params.put("accountId",accountId);
+        params.put("year",year.getValue());
+        params.put("month",month.getValue());
+
+        return jdbcTemplate.query(filterTransactionsByDate,params, new TransactionRowMapper());
     }
 
 

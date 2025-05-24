@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Month;
+import java.time.Year;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -75,6 +78,22 @@ public class TransactionService {
 
         return transactionRepository.saveTransaction(transaction)
                 .orElseThrow(() -> new ResourceNotCreatedException("Error while saving transaction"));
+    }
+
+    /**
+     * Retrieves transaction data by the given month and Year
+     * @param month month
+     * @param year year
+     * @param accountId accountId
+     * @return Transactions list
+     */
+    public List<Transaction> getAllTransactionsByMonthAndYear(Month month, Year year, String accountId){
+
+        accountRepository.findById(accountId).orElseThrow(
+                () -> new ResourceNotFoundException("Invalid account data")
+        );
+
+        return transactionRepository.getAllTransactionsByMonth(accountId,month,year);
     }
 
 }

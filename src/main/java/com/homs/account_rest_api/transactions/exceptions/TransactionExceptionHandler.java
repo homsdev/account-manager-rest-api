@@ -1,6 +1,7 @@
 package com.homs.account_rest_api.transactions.exceptions;
 
 import com.homs.account_rest_api.dto.ApiResponse;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.transactions.controller.TransactionController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -18,6 +19,20 @@ import java.util.List;
 @Slf4j
 @ControllerAdvice(assignableTypes = TransactionController.class)
 public class TransactionExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex){
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .message(HttpStatus.NOT_FOUND.toString())
+                .data(List.of(ex.getMessage()))
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNoValidException(
