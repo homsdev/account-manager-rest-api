@@ -1,9 +1,9 @@
 package com.homs.account_rest_api.controller.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.homs.account_rest_api.dto.CreateAccountDto;
-import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.service.AccountService;
+import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
+import com.homs.account_rest_api.accounts.model.Account;
+import com.homs.account_rest_api.accounts.service.AccountService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

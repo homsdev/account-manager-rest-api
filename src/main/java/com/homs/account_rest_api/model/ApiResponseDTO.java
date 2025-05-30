@@ -12,6 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Deprecated
 public class ApiResponseDTO<T> {
     private List<T> data;
     private String message;

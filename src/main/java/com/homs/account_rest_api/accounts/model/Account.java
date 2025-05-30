@@ -1,4 +1,4 @@
-package com.homs.account_rest_api.model;
+package com.homs.account_rest_api.accounts.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

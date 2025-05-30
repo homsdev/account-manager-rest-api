@@ -1,19 +1,16 @@
-package com.homs.account_rest_api.repository.impl;
+package com.homs.account_rest_api.accounts.repository;
 
-import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.mapper.rowmappers.AccountRowMapper;
-import com.homs.account_rest_api.repository.AccountRepository;
+import com.homs.account_rest_api.accounts.model.Account;
+import com.homs.account_rest_api.accounts.mapper.AccountRowMapper;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Repository class for managing {@link Account} entities in a MySQL database.
@@ -29,7 +26,7 @@ import java.util.Optional;
  * @see AccountRepository
  * @see Account
  */
-@SuppressWarnings("unused")
+
 @Repository
 @RequiredArgsConstructor
 public class AccountMysqlRepository implements AccountRepository {
@@ -46,6 +43,18 @@ public class AccountMysqlRepository implements AccountRepository {
     private String findByIdQuery;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    @Getter
+    private enum Params{
+        ID("accountId"),
+        ALIAS("alias"),
+        BALANCE("balance");
+        private final String name;
+
+        Params(String name) {
+            this.name = name;
+        }
+    }
 
     /**
      * Retrieves a list of all accounts from the database.
@@ -74,7 +83,7 @@ public class AccountMysqlRepository implements AccountRepository {
     @Override
     public Optional<Account> findById(String id) {
         Map<String, Object> params = new HashMap<>();
-        params.put("accountId", id);
+        params.put(Params.ID.getName(), id);
         return jdbcTemplate.query(findByIdQuery, params, new AccountRowMapper()).stream().findFirst();
     }
 
@@ -91,9 +100,9 @@ public class AccountMysqlRepository implements AccountRepository {
     @Override
     public Optional<Account> save(Account account) {
         Map<String, Object> params = new HashMap<>();
-        params.put("accountId", account.getAccountId());
-        params.put("alias", account.getAlias());
-        params.put("balance", account.getBalance());
+        params.put(Params.ID.getName(), account.getAccountId());
+        params.put(Params.ALIAS.getName(), account.getAlias());
+        params.put(Params.BALANCE.getName(), account.getBalance());
 
         int result = jdbcTemplate.update(saveQuery, params);
 
@@ -111,7 +120,7 @@ public class AccountMysqlRepository implements AccountRepository {
     @Override
     public Integer deleteById(String id) {
         Map<String, Object> params = new HashMap<>();
-        params.put("accountId", id);
+        params.put(Params.ID.getName(), id);
         return jdbcTemplate.update(deleteQuery, params);
     }
 
@@ -126,7 +135,7 @@ public class AccountMysqlRepository implements AccountRepository {
     public Optional<Account> updateBalance(Account account) {
         Map<String, Object> params = new HashMap<>();
         params.put("updatedBalance", account.getBalance());
-        params.put("accountId", account.getAccountId());
+        params.put(Params.ID.getName(), account.getAccountId());
         int result = jdbcTemplate.update(updateBalanceQuery, params);
 
         return result > 0 ? Optional.of(account) : Optional.empty();
