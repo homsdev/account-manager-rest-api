@@ -71,23 +71,6 @@ public interface AccountController {
     );
 
     /**
-     * PUT Updates account data
-     * @param id account id
-     * @param dto new account data
-     * @return updated account
-     */
-    @Operation(
-            summary = "Updates account",
-            description = "Updates account data for the provided id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "400", description = "Account was not updated due to functional error"),
-            @ApiResponse(responseCode = "404", description = "Account not found"),
-    })
-    ResponseEntity<ApiResponseDTO<Account>> updateAccount(
-            @PathVariable String id, @RequestBody CreateAccountDto dto);
-
-    /**
      * PATCH Updates account balance
      * @param id account id
      * @param dto new account balance
@@ -103,7 +86,7 @@ public interface AccountController {
             @ApiResponse(responseCode = "404", description = "Account not found"),
     })
     ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance(
-            @PathVariable String id, @RequestBody UpdateBalanceDTO dto
+            @PathVariable String id,@Valid @RequestBody UpdateBalanceDTO dto
     );
 
     /**

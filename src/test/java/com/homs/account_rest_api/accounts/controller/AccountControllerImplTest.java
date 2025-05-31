@@ -2,8 +2,10 @@ package com.homs.account_rest_api.accounts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
+import com.homs.account_rest_api.accounts.dto.UpdateBalanceDTO;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.accounts.service.AccountService;
+import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -73,6 +75,12 @@ public class AccountControllerImplTest {
         this.objectMapper = new ObjectMapper();
     }
 
+    /**
+     * GET /api/accounts 200
+     * GetAllAccounts should return 204 when request is ok but there are no resources to show
+     *
+     * @throws Exception
+     */
     @Test
     public void getAllAccountsShouldReturn204_WhenEmptyResponse() throws Exception {
         when(accountService.findAll())
@@ -84,6 +92,12 @@ public class AccountControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
+    /**
+     * GET /api/accounts 200
+     * GetAllAccounts should return 200 and a list of available accounts
+     *
+     * @throws Exception
+     */
     @Test
     public void getAllAccountsShouldReturn200_WhenResponseWithFullList() throws Exception {
         when(accountService.findAll())
@@ -100,7 +114,7 @@ public class AccountControllerImplTest {
     }
 
     /**
-     * GET /api/accounts/testAccountId
+     * GET /api/accounts/{accountId} 404
      * Get Account by id should return 404 when could not find the resource
      *
      * @throws Exception
@@ -118,7 +132,7 @@ public class AccountControllerImplTest {
     }
 
     /**
-     * GET /api/accounts/testAccountId
+     * GET /api/accounts/testAccountId 200
      * Get Account should return 200 and a single resource when searched resource exists
      *
      * @throws Exception
@@ -138,30 +152,32 @@ public class AccountControllerImplTest {
     }
 
     /**
-     * GET /api/accounts/%20
-     * Get Account should return 400 when accountId is missing or with whitespace characters
+     * GET /api/accounts/%20 404
+     * Get Account should return 404 when accountId is missing or with whitespace characters
      *
      * @throws Exception
      */
     @Test
     public void getAccountByIdShouldReturn400_whenMissingParameters() throws Exception {
         MvcResult result = mockMvc.perform(get(baseResourceUrl, " "))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andReturn();
         log.info(result.getRequest().getRequestURI());
         log.info(result.getResponse().getContentAsString());
     }
 
     /**
-     * /POST /api/accounts
+     * /POST /api/accounts 201
      * Create new account should return 201 and the resource when valid data is given
+     *
      * @throws Exception
      */
     @Test
     public void createNewAccount_ShouldReturn201() throws Exception {
-        CreateAccountDto dto = new CreateAccountDto();
-        dto.setAccountAlias("Test A");
-        dto.setAccountBalance(BigDecimal.valueOf(35000));
+        CreateAccountDto dto = CreateAccountDto.builder()
+                .accountAlias("Test A")
+                .accountBalance(BigDecimal.valueOf(35000))
+                .build();
 
         when(accountService.saveAccount(any(Account.class)))
                 .thenReturn(account1);
@@ -176,14 +192,86 @@ public class AccountControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
-    @Test
-    public void createNewAccount_ShouldReturn400() {
-        //TODO: Create DTO with balance minor than zero
-        //TODO: Setup serviceCreate mock
-        //TODO: Validate status is 400
 
-        //TODO: Create DTO with blankspace characters in alias
-        //TODO: Setup serviceCreate mock
-        //TODO: Validate status is 400
+    /**
+     * /POST /api/accounts 400
+     * When Alias is missing or balance is minor than 0 it should return 400
+     *
+     * @throws Exception
+     */
+    @Test
+    public void createNewAccount_ShouldReturn400() throws Exception {
+        CreateAccountDto badBalanceDTO = CreateAccountDto.builder()
+                .accountAlias(" ")
+                .accountBalance(BigDecimal.valueOf(-13000))
+                .build();
+
+        MvcResult result = mockMvc.perform(
+                        post(baseUrl)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(badBalanceDTO))
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").isArray())
+                .andExpect(jsonPath("$.message.length()").value(2))
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
     }
+
+
+    /**
+     * PATCH /api/accounts/{id} 200
+     * @throws Exception
+     */
+    @Test
+    public void updateAccountBalance_shouldReturn200() throws Exception{
+        UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
+                .updatedBalance(BigDecimal.valueOf(10_000))
+                .build();
+        MvcResult result = mockMvc.perform(
+                patch(baseResourceUrl, "testId")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateBalanceDTO))
+        ).andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * PATCH /api/accounts/{id} 400
+     * @throws Exception
+     */
+    @Test
+    public void updateAccountBalance_shouldReturn400() throws Exception{
+        UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
+                .updatedBalance(BigDecimal.valueOf(-10_000))
+                .build();
+        MvcResult result = mockMvc.perform(
+                patch(baseResourceUrl, "testId")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateBalanceDTO))
+        ).andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * PATCH /api/accounts/{id} 404
+     * @throws Exception
+     */
+    @Test
+    public void updateAccountBalance_shouldReturn404() throws Exception{
+        UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
+                .updatedBalance(BigDecimal.valueOf(10_000))
+                .build();
+        MvcResult result = mockMvc.perform(
+                patch(baseResourceUrl, " ")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateBalanceDTO))
+        ).andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
 }

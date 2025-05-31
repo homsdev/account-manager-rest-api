@@ -9,6 +9,7 @@ import com.homs.account_rest_api.accounts.service.AccountService;
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
 import com.homs.account_rest_api.exception.InvalidParametersException;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,7 @@ public class AccountControllerImpl implements AccountController {
     public ResponseEntity<ApiResponseDTO<Account>> getAccountById(@PathVariable("id") String id) {
         log.info("Executing find by id for: {}", id);
         if (id.isBlank()) {
-            throw new InvalidParametersException("Missing account parameter");
+            throw new ResourceNotFoundException(String.format("Account not found for ID: %s", id));
         }
         Account account = accountService.findById(id);
         ApiResponseDTO<Account> response = ApiResponseDTO.<Account>builder()
@@ -78,13 +79,16 @@ public class AccountControllerImpl implements AccountController {
                 .body(response);
     }
 
+    @PatchMapping("/{id}")
     @Override
-    public ResponseEntity<ApiResponseDTO<Account>> updateAccount(String id, CreateAccountDto dto) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance(String id, UpdateBalanceDTO dto) {
+    public ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance
+            (@PathVariable String id, @Valid @RequestBody UpdateBalanceDTO dto) {
+        //TODO: validate id is not blank else throw resource not found
+        //TODO: Map dto to account
+        //TODO: add id to account
+        //TODO: invoke service to update balance
+        //TODO: Create ApiResponseDTO and add modified account to data
+        //TODO: Return modified account data with status 200
         return null;
     }
 

@@ -12,6 +12,6 @@ import java.math.BigDecimal;
 public class UpdateBalanceDTO {
 
     @NotNull(message = "Missing balance parameter")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Balance must be grater than zero")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Balance must be greater than zero")
     BigDecimal updatedBalance;
 }

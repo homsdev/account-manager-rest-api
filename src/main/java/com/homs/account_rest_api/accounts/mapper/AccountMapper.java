@@ -1,6 +1,7 @@
 package com.homs.account_rest_api.accounts.mapper;
 
 import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
+import com.homs.account_rest_api.accounts.dto.UpdateBalanceDTO;
 import com.homs.account_rest_api.accounts.model.Account;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,4 +19,9 @@ public interface AccountMapper {
     @Mapping(source = "accountAlias",target = "alias")
     @Mapping(source = "accountBalance",target = "balance")
     Account toEntity(CreateAccountDto accountDto);
+
+    @Mapping(target = "alias", ignore = true)
+    @Mapping(target = "accountId", ignore = true)
+    @Mapping(target = "balance",source = "updatedBalance")
+    Account toEntity(UpdateBalanceDTO updateBalanceDTO);
 }
