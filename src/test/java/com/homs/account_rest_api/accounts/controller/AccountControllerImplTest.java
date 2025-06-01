@@ -5,7 +5,6 @@ import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
 import com.homs.account_rest_api.accounts.dto.UpdateBalanceDTO;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.accounts.service.AccountService;
-import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -222,56 +221,174 @@ public class AccountControllerImplTest {
 
     /**
      * PATCH /api/accounts/{id} 200
+     *
      * @throws Exception
      */
     @Test
-    public void updateAccountBalance_shouldReturn200() throws Exception{
+    public void updateAccountBalance_shouldReturn200() throws Exception {
         UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
-                .updatedBalance(BigDecimal.valueOf(10_000))
+                .updatedBalance(account1.getBalance())
                 .build();
+
+        when(accountService.updateBalance(any(Account.class)))
+                .thenReturn(account1);
+
         MvcResult result = mockMvc.perform(
-                patch(baseResourceUrl, "testId")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateBalanceDTO))
-        ).andReturn();
+                        patch(baseResourceUrl, "testId")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateBalanceDTO))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isMap())
+                .andReturn();
 
         log.info(result.getResponse().getContentAsString());
     }
 
     /**
      * PATCH /api/accounts/{id} 400
+     * Functional Error balance is lower than Zero
+     *
      * @throws Exception
      */
     @Test
-    public void updateAccountBalance_shouldReturn400() throws Exception{
+    public void updateAccountBalance_shouldReturn400() throws Exception {
         UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
                 .updatedBalance(BigDecimal.valueOf(-10_000))
                 .build();
+        MvcResult resultA = mockMvc.perform(
+                        patch(baseResourceUrl, "testId")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateBalanceDTO))
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").isArray())
+                .andExpect(jsonPath("$.message.length()").value(1))
+                .andReturn();
+
+        log.info(resultA.getResponse().getContentAsString());
+    }
+
+    /**
+     * PATCH /api/accounts/{id} 400
+     * Functional Error balance is missing
+     *
+     * @throws Exception
+     */
+    @Test
+    public void updateAccountBalance_shouldReturn400WhenBalanceNull() throws Exception {
+        UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
+                .updatedBalance(null)
+                .build();
+
         MvcResult result = mockMvc.perform(
-                patch(baseResourceUrl, "testId")
+                        patch(baseResourceUrl, "testId")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateBalanceDTO))
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").isArray())
+                .andExpect(jsonPath("$.message.length()").value(1))
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+
+    /**
+     * PATCH /api/accounts/{id} 404
+     * AccountId is blank
+     * @throws Exception
+     */
+    @Test
+    public void updateAccountBalance_shouldReturn404() throws Exception {
+        UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
+                .updatedBalance(BigDecimal.valueOf(10_000))
+                .build();
+
+        MvcResult result = mockMvc.perform(
+                patch(baseResourceUrl, " ")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateBalanceDTO))
-        ).andReturn();
+        )
+                .andExpect(status().isNotFound())
+                .andReturn();
 
         log.info(result.getResponse().getContentAsString());
     }
 
     /**
      * PATCH /api/accounts/{id} 404
+     * AccountId has no matches
      * @throws Exception
      */
     @Test
-    public void updateAccountBalance_shouldReturn404() throws Exception{
+    public void updateAccountBalance_shouldReturn404WhenInvalidAccountId() throws Exception {
         UpdateBalanceDTO updateBalanceDTO = UpdateBalanceDTO.builder()
                 .updatedBalance(BigDecimal.valueOf(10_000))
                 .build();
+
+        when(accountService.updateBalance(any(Account.class)))
+                .thenThrow(new ResourceNotFoundException("Account not found"));
+
         MvcResult result = mockMvc.perform(
-                patch(baseResourceUrl, " ")
+                patch(baseResourceUrl, "wrongId")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateBalanceDTO))
-        ).andReturn();
+        )
+                .andExpect(status().isNotFound())
+                .andReturn();
 
         log.info(result.getResponse().getContentAsString());
     }
 
+
+    /**
+     * DELETE /api/accounts/{id} 204
+     * Delete operation was successful
+     */
+    @Test
+    public void deleteAccount_shouldReturn204AfterSuccess() throws Exception {
+
+        when(accountService.deleteById(anyString()))
+                .thenReturn(1);
+
+        MvcResult result = mockMvc.perform(delete(baseResourceUrl, "accountId"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * DELETE /api/accounts/{id} 404
+     * Id is blank
+     */
+    @Test
+    public void deleteAccount_shouldReturn404WhenBlankId() throws Exception {
+        MvcResult result = mockMvc.perform(delete(baseResourceUrl, " "))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").isArray())
+                .andExpect(jsonPath("$.message.length()").value(1))
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * DELETE /api/accounts/{id} 404
+     * Passed id is valid but found not related resources
+     */
+    @Test
+    public void deleteAccount_shouldReturn404WhenNotRelatedResources() throws Exception {
+
+        when(accountService.deleteById(anyString()))
+                .thenThrow(new ResourceNotFoundException("Not found"));
+
+        MvcResult result = mockMvc.perform(delete(baseResourceUrl, "accountId"))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
 }

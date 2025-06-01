@@ -75,7 +75,7 @@ public class AccountService {
      *
      * @param account {@link Account} containing the updated balance information
      * @return The updated {@link Account}
-     * @throws RuntimeException if update operation is not concluded
+     * @throws ResourceNotFoundException if update operation is not concluded
      */
     public Account updateBalance(Account account) {
         return accountRepository.updateBalance(account)

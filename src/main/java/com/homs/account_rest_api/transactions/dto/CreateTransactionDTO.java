@@ -1,6 +1,6 @@
 package com.homs.account_rest_api.transactions.dto;
 
-import com.homs.account_rest_api.enums.TransactionType;
+import com.homs.account_rest_api.transactions.enums.TransactionType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;

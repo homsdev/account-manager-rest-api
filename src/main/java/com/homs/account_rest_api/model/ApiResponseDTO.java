@@ -7,12 +7,16 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * @deprecated
+ * @param <T>
+ */
 @SuppressWarnings("unused")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Deprecated
+@Deprecated(since = "0.2",forRemoval = true)
 public class ApiResponseDTO<T> {
     private List<T> data;
     private String message;

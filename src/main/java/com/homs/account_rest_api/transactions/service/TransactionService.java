@@ -1,6 +1,6 @@
 package com.homs.account_rest_api.transactions.service;
 
-import com.homs.account_rest_api.enums.TransactionType;
+import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotCreatedException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.accounts.model.Account;

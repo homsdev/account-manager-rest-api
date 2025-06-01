@@ -8,10 +8,8 @@ import com.homs.account_rest_api.accounts.service.AccountService;
 
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
-import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -83,17 +81,31 @@ public class AccountControllerImpl implements AccountController {
     @Override
     public ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance
             (@PathVariable String id, @Valid @RequestBody UpdateBalanceDTO dto) {
-        //TODO: validate id is not blank else throw resource not found
-        //TODO: Map dto to account
-        //TODO: add id to account
-        //TODO: invoke service to update balance
-        //TODO: Create ApiResponseDTO and add modified account to data
-        //TODO: Return modified account data with status 200
-        return null;
+        if(id.isBlank()){
+            throw new ResourceNotFoundException(String.format("Account not found for ID: %s",id));
+        }
+
+        Account accountToUpdate = accountMapper.toEntity(dto);
+        accountToUpdate.setAccountId(id);
+
+        Account account = accountService.updateBalance(accountToUpdate);
+
+        ApiResponseDTO<Account> response = ApiResponseDTO.<Account>builder()
+                .data(account)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/{id}")
     @Override
-    public ResponseEntity<Void> deleteAccount(String id) {
-        return null;
+    public ResponseEntity<Void> deleteAccount(@PathVariable String id) {
+        if(id.isBlank()){
+            throw new ResourceNotFoundException(String.format("Account not found for ID: %s",id));
+        }
+
+        accountService.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
