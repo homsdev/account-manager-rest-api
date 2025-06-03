@@ -1,6 +1,6 @@
-package com.homs.account_rest_api.repository;
+package com.homs.account_rest_api.accounts.repository;
 
-import com.homs.account_rest_api.model.Account;
+import com.homs.account_rest_api.accounts.model.Account;
 
 import java.util.List;
 import java.util.Optional;

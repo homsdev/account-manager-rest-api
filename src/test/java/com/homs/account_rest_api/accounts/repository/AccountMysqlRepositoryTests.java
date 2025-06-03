@@ -1,8 +1,7 @@
-package com.homs.account_rest_api.repository.impl;
+package com.homs.account_rest_api.accounts.repository;
 
-import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.mapper.rowmappers.AccountRowMapper;
-import com.homs.account_rest_api.repository.AccountRepository;
+import com.homs.account_rest_api.accounts.model.Account;
+import com.homs.account_rest_api.accounts.mapper.AccountRowMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
@@ -21,9 +21,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 
-@SuppressWarnings("unused")
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@ActiveProfiles("Test")
 public class AccountMysqlRepositoryTests {
 
     private final String validId = "de2a7490-4c00-492d-bc52-a0c7172eb4ed";

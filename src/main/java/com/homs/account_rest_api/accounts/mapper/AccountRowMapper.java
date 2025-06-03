@@ -1,6 +1,6 @@
-package com.homs.account_rest_api.mapper.rowmappers;
+package com.homs.account_rest_api.accounts.mapper;
 
-import com.homs.account_rest_api.model.Account;
+import com.homs.account_rest_api.accounts.model.Account;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;

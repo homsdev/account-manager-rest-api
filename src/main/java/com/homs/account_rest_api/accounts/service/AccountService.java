@@ -1,9 +1,9 @@
-package com.homs.account_rest_api.service;
+package com.homs.account_rest_api.accounts.service;
 
 import com.homs.account_rest_api.exception.ResourceNotCreatedException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
-import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.repository.AccountRepository;
+import com.homs.account_rest_api.accounts.model.Account;
+import com.homs.account_rest_api.accounts.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,6 @@ import java.util.UUID;
  * Account service class to handle basic CRUD operations
  * for domain {@link Account}
  */
-@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -39,7 +38,7 @@ public class AccountService {
      */
     public Account findById(String id) {
         return accountRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Requested account was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     /**
@@ -52,7 +51,7 @@ public class AccountService {
     public Account saveAccount(Account newAccount) {
         newAccount.setAccountId(UUID.randomUUID().toString());
         return accountRepository.save(newAccount)
-                .orElseThrow(()-> new ResourceNotCreatedException("Failed to create new account"));
+                .orElseThrow(() -> new ResourceNotCreatedException("Failed to create new account"));
     }
 
     /**
@@ -65,7 +64,7 @@ public class AccountService {
     public Integer deleteById(String id) {
         Integer affectedRows = accountRepository.deleteById(id);
         if (affectedRows < 1) {
-            throw new ResourceNotFoundException("Requested account was not found");
+            throw new ResourceNotFoundException(id);
         } else {
             return affectedRows;
         }
@@ -76,11 +75,11 @@ public class AccountService {
      *
      * @param account {@link Account} containing the updated balance information
      * @return The updated {@link Account}
-     * @throws RuntimeException if update operation is not concluded
+     * @throws ResourceNotFoundException if update operation is not concluded
      */
     public Account updateBalance(Account account) {
         return accountRepository.updateBalance(account)
-                .orElseThrow(() -> new ResourceNotFoundException("Requested account was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(account.getAccountId()));
     }
 
 }

@@ -1,4 +1,4 @@
-package com.homs.account_rest_api.enums;
+package com.homs.account_rest_api.transactions.enums;
 
 import lombok.Getter;
 

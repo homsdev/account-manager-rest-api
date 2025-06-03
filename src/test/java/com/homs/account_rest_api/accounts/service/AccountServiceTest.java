@@ -1,12 +1,9 @@
-package com.homs.account_rest_api.service;
+package com.homs.account_rest_api.accounts.service;
 
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
-
+import com.homs.account_rest_api.accounts.model.Account;
+import com.homs.account_rest_api.accounts.repository.AccountRepository;
 import com.homs.account_rest_api.exception.ResourceNotCreatedException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
-import com.homs.account_rest_api.model.Account;
-import com.homs.account_rest_api.repository.AccountRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +16,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-@SuppressWarnings("unused")
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atMostOnce;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class AccountServiceTest {
-
     @MockBean
     private AccountRepository accountRepository;
 
