@@ -38,7 +38,7 @@ public class AccountService {
      */
     public Account findById(String id) {
         return accountRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Requested account was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     /**
@@ -51,7 +51,7 @@ public class AccountService {
     public Account saveAccount(Account newAccount) {
         newAccount.setAccountId(UUID.randomUUID().toString());
         return accountRepository.save(newAccount)
-                .orElseThrow(()-> new ResourceNotCreatedException("Failed to create new account"));
+                .orElseThrow(() -> new ResourceNotCreatedException("Failed to create new account"));
     }
 
     /**
@@ -64,7 +64,7 @@ public class AccountService {
     public Integer deleteById(String id) {
         Integer affectedRows = accountRepository.deleteById(id);
         if (affectedRows < 1) {
-            throw new ResourceNotFoundException("Requested account was not found");
+            throw new ResourceNotFoundException(id);
         } else {
             return affectedRows;
         }
@@ -79,7 +79,7 @@ public class AccountService {
      */
     public Account updateBalance(Account account) {
         return accountRepository.updateBalance(account)
-                .orElseThrow(() -> new ResourceNotFoundException("Requested account was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(account.getAccountId()));
     }
 
 }

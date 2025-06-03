@@ -75,7 +75,7 @@ public class AccountControllerImplTest {
     }
 
     /**
-     * GET /api/accounts 200
+     * GET /api/accounts 204
      * GetAllAccounts should return 204 when request is ok but there are no resources to show
      *
      * @throws Exception

@@ -6,12 +6,14 @@ import com.homs.account_rest_api.accounts.mapper.AccountMapper;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.accounts.service.AccountService;
 
+import com.homs.account_rest_api.dto.ApiResponse;
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -30,6 +33,26 @@ public class AccountControllerImpl implements AccountController {
 
     private final AccountService accountService;
     private final AccountMapper accountMapper;
+
+    private void expandSelfResponse(ApiResponseDTO<Account> responseDTO, String id) {
+
+        responseDTO.add(linkTo(
+                methodOn(AccountControllerImpl.class).getAccountById(id)
+        ).withSelfRel());
+
+        responseDTO.add(linkTo(
+                methodOn(AccountControllerImpl.class).updateAccountBalance(id, null)
+        ).withRel("update").withType("PATCH"));
+
+        responseDTO.add(linkTo(
+                methodOn(AccountControllerImpl.class).deleteAccount(id)
+        ).withRel("delete").withType("DELETE"));
+
+        responseDTO.add(linkTo(
+                methodOn(AccountControllerImpl.class).getAllAccounts()
+        ).withRel("all_accounts"));
+
+    }
 
     @GetMapping
     @Override
@@ -46,6 +69,10 @@ public class AccountControllerImpl implements AccountController {
                         .timestamp(Instant.now())
                         .build();
 
+        response.add(linkTo(
+                methodOn(AccountControllerImpl.class).createNewAccount(null)
+        ).withRel("create").withType("POST"));
+
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);
     }
@@ -55,12 +82,15 @@ public class AccountControllerImpl implements AccountController {
     public ResponseEntity<ApiResponseDTO<Account>> getAccountById(@PathVariable("id") String id) {
         log.info("Executing find by id for: {}", id);
         if (id.isBlank()) {
-            throw new ResourceNotFoundException(String.format("Account not found for ID: %s", id));
+            throw new ResourceNotFoundException(id);
         }
         Account account = accountService.findById(id);
         ApiResponseDTO<Account> response = ApiResponseDTO.<Account>builder()
                 .data(account)
                 .build();
+
+        expandSelfResponse(response, account.getAccountId());
+
         return ResponseEntity.ok(response);
     }
 
@@ -73,6 +103,9 @@ public class AccountControllerImpl implements AccountController {
         ApiResponseDTO<Account> response = ApiResponseDTO.<Account>builder()
                 .data(createdAccount)
                 .build();
+
+        expandSelfResponse(response, createdAccount.getAccountId());
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(response);
     }
@@ -81,8 +114,8 @@ public class AccountControllerImpl implements AccountController {
     @Override
     public ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance
             (@PathVariable String id, @Valid @RequestBody UpdateBalanceDTO dto) {
-        if(id.isBlank()){
-            throw new ResourceNotFoundException(String.format("Account not found for ID: %s",id));
+        if (id.isBlank()) {
+            throw new ResourceNotFoundException(id);
         }
 
         Account accountToUpdate = accountMapper.toEntity(dto);
@@ -94,14 +127,16 @@ public class AccountControllerImpl implements AccountController {
                 .data(account)
                 .build();
 
+        expandSelfResponse(response, account.getAccountId());
+
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     @Override
     public ResponseEntity<Void> deleteAccount(@PathVariable String id) {
-        if(id.isBlank()){
-            throw new ResourceNotFoundException(String.format("Account not found for ID: %s",id));
+        if (id.isBlank()) {
+            throw new ResourceNotFoundException(id);
         }
 
         accountService.deleteById(id);

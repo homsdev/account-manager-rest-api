@@ -6,8 +6,8 @@ public class ResourceNotFoundException extends RuntimeException {
         this("Requested Resource was not found");
     }
 
-    public ResourceNotFoundException(String message) {
-        super(message);
+    public ResourceNotFoundException(String id) {
+        super(String.format("Resource with ID: %s not found", id));
     }
 
     public ResourceNotFoundException(String message, Throwable cause) {
