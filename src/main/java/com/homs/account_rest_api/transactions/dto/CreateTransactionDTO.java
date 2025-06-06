@@ -1,6 +1,7 @@
 package com.homs.account_rest_api.transactions.dto;
 
 import com.homs.account_rest_api.transactions.enums.TransactionType;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 @Getter
 public class CreateTransactionDTO {
     @NotNull(message = "Amount is required")
+    @DecimalMin(value = "0.00", inclusive = true, message = "Amount cannot be less than 0")
     private BigDecimal amount;
 
     @NotNull(message = "Type is required")

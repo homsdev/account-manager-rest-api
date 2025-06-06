@@ -1,7 +1,9 @@
 package com.homs.account_rest_api.transactions.controller;
 
 import com.homs.account_rest_api.dto.ApiResponse;
+import com.homs.account_rest_api.dto.ApiResponseDTO;
 import com.homs.account_rest_api.exception.InvalidParametersException;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.transactions.model.Transaction;
 import com.homs.account_rest_api.transactions.model.TransactionMapper;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
@@ -26,7 +28,7 @@ import java.util.List;
 
 @RestController
 @Validated
-@RequestMapping("/api/{accountId}/transaction")
+@RequestMapping("/api/accounts/{accountId}/transactions")
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionControllerImpl implements TransactionController {
@@ -34,7 +36,7 @@ public class TransactionControllerImpl implements TransactionController {
     private final TransactionService transactionService;
     private final TransactionMapper transactionMapper;
 
-    private Month validateSelectedMonth(String month){
+    private Month validateSelectedMonth(String month) {
         try {
             return Month.valueOf(month.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
@@ -42,7 +44,7 @@ public class TransactionControllerImpl implements TransactionController {
         }
     }
 
-    private Year validateSelectedYear(String year){
+    private Year validateSelectedYear(String year) {
         try {
             return Year.parse(year);
         } catch (DateTimeException ex) {
@@ -52,14 +54,12 @@ public class TransactionControllerImpl implements TransactionController {
 
     @Override
     @PostMapping
-    public ResponseEntity<ApiResponse<Transaction>> createTransaction(
+    public ResponseEntity<ApiResponseDTO<Transaction>> createTransaction(
             @PathVariable String accountId, @RequestBody @Valid CreateTransactionDTO dto) {
         Transaction entity = transactionMapper.toEntity(dto);
         Transaction savedTransaction = transactionService.saveTransaction(entity, accountId);
-        ApiResponse<Transaction> response = ApiResponse.<Transaction>builder()
-                .status(HttpStatus.CREATED.value())
-                .message(HttpStatus.CREATED.toString())
-                .data(Collections.singletonList(savedTransaction))
+        ApiResponseDTO<Transaction> response = ApiResponseDTO.<Transaction>builder()
+                .data(savedTransaction)
                 .timestamp(Instant.now())
                 .build();
         return ResponseEntity
@@ -69,10 +69,15 @@ public class TransactionControllerImpl implements TransactionController {
 
     @Override
     @GetMapping
-    public ResponseEntity<ApiResponse<Transaction>> getTransactionsByMonthAndYear(
-            @PathVariable @NotBlank String accountId,
+    public ResponseEntity<ApiResponseDTO<List<Transaction>>> getTransactionsByMonthAndYear(
+            @PathVariable String accountId,
             @RequestParam @NotNull String month,
             @RequestParam @NotNull String year) {
+
+        if (accountId.isBlank()) {
+            throw new ResourceNotFoundException(accountId);
+        }
+
         List<Transaction> transactions = transactionService
                 .getAllTransactionsByMonthAndYear(
                         validateSelectedMonth(month),
@@ -80,9 +85,7 @@ public class TransactionControllerImpl implements TransactionController {
                         accountId
                 );
 
-        ApiResponse<Transaction> response = ApiResponse.<Transaction>builder()
-                .status(HttpStatus.OK.value())
-                .message(HttpStatus.OK.getReasonPhrase())
+        ApiResponseDTO<List<Transaction>> response = ApiResponseDTO.<List<Transaction>>builder()
                 .data(transactions)
                 .timestamp(Instant.now())
                 .build();

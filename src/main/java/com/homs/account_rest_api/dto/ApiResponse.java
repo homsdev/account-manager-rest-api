@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.List;
 
 
+@Deprecated
 @Builder
 @Getter
 @Setter
