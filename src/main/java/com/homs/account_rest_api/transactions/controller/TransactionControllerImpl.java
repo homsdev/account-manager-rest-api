@@ -1,6 +1,5 @@
 package com.homs.account_rest_api.transactions.controller;
 
-import com.homs.account_rest_api.dto.ApiResponse;
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
@@ -9,10 +8,8 @@ import com.homs.account_rest_api.transactions.model.TransactionMapper;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
 import com.homs.account_rest_api.transactions.service.TransactionService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +20,6 @@ import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.Month;
 import java.time.Year;
-import java.util.Collections;
 import java.util.List;
 
 @RestController

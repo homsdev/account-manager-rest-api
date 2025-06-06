@@ -1,6 +1,5 @@
 package com.homs.account_rest_api.exception;
 
-import com.homs.account_rest_api.dto.ApiResponse;
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
