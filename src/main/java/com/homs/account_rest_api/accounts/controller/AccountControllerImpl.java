@@ -6,7 +6,6 @@ import com.homs.account_rest_api.accounts.mapper.AccountMapper;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.accounts.service.AccountService;
 
-import com.homs.account_rest_api.dto.ApiResponse;
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;

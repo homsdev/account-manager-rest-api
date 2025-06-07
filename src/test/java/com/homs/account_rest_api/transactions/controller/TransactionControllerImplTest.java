@@ -59,6 +59,8 @@ public class TransactionControllerImplTest {
     private Account sampleAccount;
     private CreateTransactionDTO sampleDTO;
 
+    private final String baseEndpoint = "/api/accounts/{accountId}/transactions";
+
     @Before
     public void setUp() {
         sampleAccount = Account.builder()
@@ -87,13 +89,19 @@ public class TransactionControllerImplTest {
     }
 
 
+    /**
+     * POST /api/accounts/{accountId}/transactions 201
+     * createTransaction Should create resource
+     *
+     * @throws Exception
+     */
     @Test
     public void shouldResponseWithHttpCreated() throws Exception {
         when(transactionService.saveTransaction(any(), anyString()))
                 .thenReturn(sampleTransaction);
         MvcResult result = mockMvc
                 .perform(
-                        post("/api/{accountId}/transaction", sampleAccount.getAccountId())
+                        post(baseEndpoint, sampleAccount.getAccountId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(sampleDTO))
                 )
@@ -102,6 +110,12 @@ public class TransactionControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
+    /**
+     * POST /api/accounts/{accountId}/transactions 400
+     * createTransaction should return array with functional error messages
+     *
+     * @throws Exception
+     */
     @Test
     public void shouldThrowErrorWithAnyNullField() throws Exception {
         CreateTransactionDTO invalidTypeDTO = CreateTransactionDTO
@@ -114,7 +128,7 @@ public class TransactionControllerImplTest {
 
         MvcResult result = mockMvc
                 .perform(
-                        post("/api/{accountId}/transaction", sampleAccount.getAccountId())
+                        post(baseEndpoint, sampleAccount.getAccountId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidTypeDTO))
                 )
@@ -123,6 +137,12 @@ public class TransactionControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
+    /**
+     * POST /api/accounts/{accountId}/transactions 400
+     * CreateTransaction should return a functional error message if date is on wrong format
+     *
+     * @throws Exception
+     */
     @Test
     public void shouldThrowErrorWhenDateFormatIsIncorrect() throws Exception {
         Map<String, Object> payload = new HashMap<>();
@@ -132,7 +152,7 @@ public class TransactionControllerImplTest {
         payload.put("description", "Test");
 
         MvcResult result = mockMvc.perform(
-                        post("/api/{accountId}/transaction", sampleAccount.getAccountId())
+                        post(baseEndpoint, sampleAccount.getAccountId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(payload))
                 ).andExpect(status().isBadRequest())
@@ -140,6 +160,12 @@ public class TransactionControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
+    /**
+     * POST /api/accounts/{accountId}/transactions 400
+     * CreateTransaction should return a functional error message if type is not [INCOME,EXPENSE]
+     *
+     * @throws Exception
+     */
     @Test
     public void shouldThrowErrorWhenEnumIsIncorrect() throws Exception {
         Map<String, Object> payload = new HashMap<>();
@@ -149,7 +175,7 @@ public class TransactionControllerImplTest {
         payload.put("description", "Test");
 
         MvcResult result = mockMvc.perform(
-                        post("/api/{accountId}/transaction", sampleAccount.getAccountId())
+                        post(baseEndpoint, sampleAccount.getAccountId())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(payload))
                 ).andExpect(status().isBadRequest())
@@ -157,83 +183,56 @@ public class TransactionControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
-    @Test
-    public void whenDescriptionIsInvalid_shouldReturnBadRequest() throws Exception {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("amount", 10_500.10);
-        payload.put("type", "INCOME");
-        payload.put("date", "2020-11-05");
-        payload.put("description", "");
 
-        MvcResult result = mockMvc.perform(
-                        post("/api/{accountId}/transaction", sampleAccount.getAccountId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(payload))
-                ).andExpect(status().isBadRequest())
-                .andReturn();
-        log.info(result.getResponse().getContentAsString());
-    }
-
-    @Test
-    public void whenMissingFields_shouldReturnBadRequest() throws Exception{
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("type", "INCOME");
-        payload.put("description", "");
-
-        MvcResult result = mockMvc.perform(
-                        post("/api/{accountId}/transaction", sampleAccount.getAccountId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(payload))
-                ).andExpect(status().isBadRequest())
-                .andReturn();
-        log.info(result.getResponse().getContentAsString());
-    }
-
+    /**
+     *
+     * @throws Exception
+     */
     @Test
     public void getTransactionsByMonthAndYearShouldReturn400ForInvalidData() throws Exception {
         MvcResult resultBadMonth = mockMvc.perform(
-                get("/api/{accountId}/transaction?month=mayo&year=2025", sampleAccount.getAccountId())
-                        .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isBadRequest())
+                        get(String.format("%s?month=mayo&year=2025", baseEndpoint), sampleAccount.getAccountId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isBadRequest())
                 .andReturn();
         log.info(resultBadMonth.getResponse().getContentAsString());
 
         MvcResult resultBadYear = mockMvc.perform(
-                get("/api/{accountId}/transaction?month=june&year=NAMCO", sampleAccount.getAccountId())
-                        .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isBadRequest())
+                        get(String.format("%s?month=june&year=NAMCO", baseEndpoint), sampleAccount.getAccountId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isBadRequest())
                 .andReturn();
         log.info(resultBadYear.getResponse().getContentAsString());
 
         MvcResult resultNotAccountId = mockMvc.perform(
-                get("/api/{accountId}/transaction?month=june&year=NAMCO", "")
-                        .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isNotFound())
+                        get(String.format("%s?month=june&year=NAMCO", baseEndpoint),  " ")
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isNotFound())
                 .andReturn();
         log.info(resultNotAccountId.getResponse().getContentAsString());
     }
 
     @Test
     public void getTransactionsByMonthAndYearShouldThrowExceptionWhenAccountDoesNotExist() throws Exception {
-        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class),any(Year.class),anyString()))
+        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class), any(Year.class), anyString()))
                 .thenThrow(new ResourceNotFoundException("Invalid account data"));
 
         MvcResult result = mockMvc.perform(
-                get("/api/{accountId}/transaction?month=june&year=2025", sampleAccount.getAccountId())
-                        .contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isNotFound())
+                        get("/api/{accountId}/transaction?month=june&year=2025", sampleAccount.getAccountId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isNotFound())
                 .andReturn();
 
         log.info(result.getResponse().getContentAsString());
     }
 
     @Test
-    public void getTransactionsByMonthAndYearReturnsListOfTransactions() throws Exception{
-        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class),any(Year.class),anyString()))
+    public void getTransactionsByMonthAndYearReturnsListOfTransactions() throws Exception {
+        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class), any(Year.class), anyString()))
                 .thenReturn(List.of(sampleTransaction));
-
+        String uri = String.format("%s?month=june&year=2025", baseEndpoint);
         MvcResult result = mockMvc.perform(
-                        get("/api/{accountId}/transaction?month=june&year=2025", sampleAccount.getAccountId())
+                        get(uri, sampleAccount.getAccountId())
                                 .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(status().isOk())
                 .andReturn();

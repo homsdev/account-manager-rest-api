@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,6 +50,30 @@ public class GlobalExceptionHandler {
                 .timestamp(Instant.now())
                 .build();
         return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponseDTO<Object>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex
+    ) {
+        log.warn("Executing handleHttpMessageNotReadableException");
+        log.info(ex.getLocalizedMessage());
+        String errorMsg = ex.getLocalizedMessage().toLowerCase();
+        String responseData = "Error while processing input body";
+        if (errorMsg.contains("date")) {
+            responseData = "Wrong date format, accepted format is yyyy-mm-dd";
+        }
+
+        if (errorMsg.contains("enum")) {
+            responseData = "Wrong type, accepted values are [INCOME,EXPENSE]";
+        }
+
+        ApiResponseDTO<Object> res = ApiResponseDTO.builder()
+                .message(Collections.singletonList(responseData))
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.badRequest().body(res);
     }
 
 }
