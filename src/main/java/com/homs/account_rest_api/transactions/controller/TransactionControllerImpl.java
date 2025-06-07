@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -89,5 +90,28 @@ public class TransactionControllerImpl implements TransactionController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(response);
+    }
+
+    @PostMapping
+    @Override
+    public ResponseEntity<ApiResponseDTO<List<Transaction>>> loadTransactions(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new InvalidParametersException("File not found");
+        }
+
+        String contentType = file.getContentType();
+
+        if (contentType == null || !contentType.equals("text/csv")) {
+            throw new InvalidParametersException("Invalid file format");
+        }
+
+        List<Transaction> loadedTransactions = transactionService.loadTransactions(file);
+
+        ApiResponseDTO<List<Transaction>> response = ApiResponseDTO.<List<Transaction>>builder()
+                .data(loadedTransactions)
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }

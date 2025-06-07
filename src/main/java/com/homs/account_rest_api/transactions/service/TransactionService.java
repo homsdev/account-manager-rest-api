@@ -11,10 +11,12 @@ import com.homs.account_rest_api.transactions.repository.TransactionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.Month;
 import java.time.Year;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -94,6 +96,18 @@ public class TransactionService {
         );
 
         return transactionRepository.getAllTransactionsByMonth(accountId,month,year);
+    }
+
+    /**
+     * Loads transactions into storage by reading info from a CSV file
+     * @param file
+     * @return
+     */
+    public List<Transaction> loadTransactions(MultipartFile file){
+
+        //TODO: read file content
+
+        return Collections.emptyList();
     }
 
 }
