@@ -18,10 +18,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,8 +35,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -185,7 +187,6 @@ public class TransactionControllerImplTest {
 
 
     /**
-     *
      * @throws Exception
      */
     @Test
@@ -205,7 +206,7 @@ public class TransactionControllerImplTest {
         log.info(resultBadYear.getResponse().getContentAsString());
 
         MvcResult resultNotAccountId = mockMvc.perform(
-                        get(String.format("%s?month=june&year=NAMCO", baseEndpoint),  " ")
+                        get(String.format("%s?month=june&year=NAMCO", baseEndpoint), " ")
                                 .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(status().isNotFound())
                 .andReturn();
@@ -238,5 +239,84 @@ public class TransactionControllerImplTest {
                 .andReturn();
 
         log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * /api/accounts/{accountId}/transactions/load 200
+     * Sending a correct file should load all transactions a return a list of created
+     */
+    @Test
+    public void loadTransactionsShouldReturn200WhenOk() throws Exception {
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.csv",
+                "text/csv",
+                "mock-content".getBytes()
+        );
+
+        when(transactionService.loadTransactions(any(MultipartFile.class)))
+                .thenReturn(List.of(sampleTransaction, sampleTransaction));
+
+        MvcResult result = mockMvc.perform(
+                        multipart(String.format("%s/load", baseEndpoint), "testId")
+                                .file(mockFile)
+                ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * /api/accounts/{accountId}/transactions/load 400
+     * Sending incorrect file format
+     */
+    @Test
+    public void loadTransactionsShouldReturn400WhenBadFormat() throws Exception {
+        String mockContent = "This is not a CSV";
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.txt",
+                "text/plain",
+                mockContent.getBytes()
+        );
+
+        MvcResult result = mockMvc.perform(
+                        multipart(String.format("%s/load", baseEndpoint), "test")
+                                .file(mockFile)
+                ).andExpect(status().isBadRequest())
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * /api/accounts/{accountId}/transactions/load 400
+     * Sending empty file or not sending anything
+     */
+    @Test
+    public void loadTransactionsShouldReturn400WhenEmptyFile() throws Exception {
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.csv",
+                "text/csv",
+                new byte[0]
+        );
+
+        MvcResult resultNotContent = mockMvc.perform(
+                        multipart(String.format("%s/load", baseEndpoint), "test")
+                                .file(mockFile)
+                ).andExpect(status().isBadRequest())
+                .andReturn();
+
+        log.info(resultNotContent.getResponse().getContentAsString());
+
+        MvcResult resultNoFile = mockMvc.perform(
+                        multipart(String.format("%s/load", baseEndpoint), "test")
+                ).andExpect(status().isBadRequest())
+                .andReturn();
+
+        log.info(resultNoFile.getResponse().getContentAsString());
     }
 }

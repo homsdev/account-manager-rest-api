@@ -92,7 +92,7 @@ public class TransactionControllerImpl implements TransactionController {
                 .body(response);
     }
 
-    @PostMapping
+    @PostMapping("/load")
     @Override
     public ResponseEntity<ApiResponseDTO<List<Transaction>>> loadTransactions(MultipartFile file) {
         if (file.isEmpty()) {

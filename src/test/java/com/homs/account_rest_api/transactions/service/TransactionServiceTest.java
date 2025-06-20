@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.service;
 
+import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.accounts.model.Account;
@@ -7,6 +8,7 @@ import com.homs.account_rest_api.accounts.repository.AccountRepository;
 import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
 import com.homs.account_rest_api.transactions.model.Transaction;
 import com.homs.account_rest_api.transactions.repository.TransactionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,9 +16,12 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
@@ -28,6 +33,7 @@ import java.util.UUID;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("Test")
@@ -178,14 +184,14 @@ public class TransactionServiceTest {
 
         when(accountRepository.findById(anyString()))
                 .thenReturn(Optional.of(sampleAccount));
-        when(transactionRepository.getAllTransactionsByMonth(anyString(),any(Month.class),any(Year.class)))
-                .thenReturn(List.of(a,b,c));
+        when(transactionRepository.getAllTransactionsByMonth(anyString(), any(Month.class), any(Year.class)))
+                .thenReturn(List.of(a, b, c));
 
         List<Transaction> result = transactionService.getAllTransactionsByMonthAndYear(
                 Month.APRIL, Year.now(), "accountId"
         );
 
-        assertEquals(3,result.size());
+        assertEquals(3, result.size());
     }
 
     @Test()
@@ -195,7 +201,7 @@ public class TransactionServiceTest {
 
         Year currentYear = Year.now();
 
-        assertThrows(ResourceNotFoundException.class,()-> transactionService.getAllTransactionsByMonthAndYear(
+        assertThrows(ResourceNotFoundException.class, () -> transactionService.getAllTransactionsByMonthAndYear(
                 Month.JUNE, currentYear, ""
         ));
     }
@@ -211,5 +217,74 @@ public class TransactionServiceTest {
                 transactionService.getAllTransactionsByMonthAndYear(Month.AUGUST, currentYear, "accountId");
 
         assertTrue(transactions.isEmpty());
+    }
+
+    /**
+     * Happy path
+     */
+    @Test
+    public void loadTransactionsShouldReadCSVContent() {
+        String csvContent = """
+                Amount,Type,Date,Account,Alias
+                1000.50,INCOME,2024-04-15,ACC12345,Salary
+                -150.75,EXPENSE,2024-04-16,ACC67890,Grocery
+                250.00,INCOME,2024-04-17,ACC12345,Freelance
+                -50.00,EXPENSE,2024-04-18,ACC67890,Utilities
+                """;
+        MultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.csv",
+                "text/csv",
+                csvContent.getBytes()
+        );
+        when(transactionRepository.saveTransaction(any(Transaction.class)))
+                .thenReturn(Optional.of(sampleTransaction));
+        List<Transaction> loadedTransactions = transactionService.loadTransactions(mockFile);
+        assertEquals(4, loadedTransactions.size());
+    }
+
+
+    @Test
+    public void loadTransactionsShouldSkipEmptyLines() {
+        String csvContent = """
+                Amount,Type,Date,Account,Alias
+                
+                """;
+        MultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.csv",
+                "text/csv",
+                csvContent.getBytes()
+        );
+        when(transactionRepository.saveTransaction(any(Transaction.class)))
+                .thenReturn(Optional.of(sampleTransaction));
+        List<Transaction> loadedTransactions = transactionService.loadTransactions(mockFile);
+        assertEquals(0, loadedTransactions.size());
+    }
+
+    @Test
+    public void loadTransactionsShouldThrowErrWithAnEmptyFile() {
+        String csvContent = "";
+        MultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.csv",
+                "text/csv",
+                csvContent.getBytes()
+        );
+
+        assertThrows(
+                InvalidParametersException.class,
+                () -> transactionService.loadTransactions(mockFile));
+    }
+
+    @Test
+    public void loadTransactionsShouldThrowIOExceptionWhenCorruptedFile() throws IOException {
+        MultipartFile mockFile = mock(MultipartFile.class);
+
+        when(mockFile.getInputStream())
+                .thenThrow(new IOException());
+
+        assertThrows(InvalidParametersException.class,
+                () -> transactionService.loadTransactions(mockFile));
     }
 }
