@@ -33,8 +33,8 @@ public interface TransactionController {
     )
     ResponseEntity<ApiResponseDTO<List<Transaction>>> getTransactionsByMonthAndYear(
             @PathVariable String accountId,
-            @RequestParam @NotNull String month,
-            @RequestParam @NotNull String year
+            @RequestParam String month,
+            @RequestParam String year
     );
 
     @Operation(

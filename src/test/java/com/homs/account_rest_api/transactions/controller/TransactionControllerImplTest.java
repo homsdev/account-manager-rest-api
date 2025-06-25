@@ -187,6 +187,7 @@ public class TransactionControllerImplTest {
 
 
     /**
+     * GET /api/accounts/{accountId}/transactions 400
      * @throws Exception
      */
     @Test
@@ -213,6 +214,11 @@ public class TransactionControllerImplTest {
         log.info(resultNotAccountId.getResponse().getContentAsString());
     }
 
+    /**
+     * GET /api/accounts/{accountId}/transactions 404
+     * Account does not exists
+     * @throws Exception
+     */
     @Test
     public void getTransactionsByMonthAndYearShouldThrowExceptionWhenAccountDoesNotExist() throws Exception {
         when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class), any(Year.class), anyString()))
@@ -227,6 +233,27 @@ public class TransactionControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
+    /**
+     * GET /api/accounts/{accountId}/transactions?month=JUNE&year=2025 200
+     */
+    @Test
+    public void getTransactionsWithoutParamsShouldReturnCurrentMonthData() throws Exception {
+
+        when(transactionService.getAllTransactionsByMonthAndYear(any(),any(),anyString()))
+                .thenReturn(List.of(sampleTransaction,sampleTransaction));
+
+        MvcResult result = mockMvc.perform(
+                get(baseEndpoint,"accountId")
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * GET /api/accounts/{accountId}/transactions?month=JUNE&year=2025 200
+     * @throws Exception
+     */
     @Test
     public void getTransactionsByMonthAndYearReturnsListOfTransactions() throws Exception {
         when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class), any(Year.class), anyString()))

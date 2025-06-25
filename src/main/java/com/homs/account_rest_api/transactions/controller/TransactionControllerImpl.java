@@ -17,10 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.DateTimeException;
-import java.time.Instant;
-import java.time.Month;
-import java.time.Year;
+import java.time.*;
 import java.util.List;
 
 @RestController
@@ -68,11 +65,19 @@ public class TransactionControllerImpl implements TransactionController {
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<Transaction>>> getTransactionsByMonthAndYear(
             @PathVariable String accountId,
-            @RequestParam @NotNull String month,
-            @RequestParam @NotNull String year) {
+            @RequestParam(required = false) String month,
+            @RequestParam(required = false) String year) {
 
         if (accountId.isBlank()) {
             throw new ResourceNotFoundException(accountId);
+        }
+
+        if (month == null) {
+            month = LocalDate.now().getMonth().name();
+        }
+
+        if (year == null) {
+            year = String.valueOf(LocalDate.now().getYear());
         }
 
         List<Transaction> transactions = transactionService
