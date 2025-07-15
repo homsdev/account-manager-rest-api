@@ -1,7 +1,7 @@
 package com.homs.account_rest_api.categories.controller;
 
+import com.homs.account_rest_api.categories.dto.CategoryDTO;
 import com.homs.account_rest_api.categories.dto.CategoryListResponseDTO;
-import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,4 +42,41 @@ public interface CategoryController {
             }
     )
     ResponseEntity<ApiResponseDTO<CategoryListResponseDTO>> getAllCategories();
+
+    @Operation(
+            summary = "Retrieve a single category",
+            description = "Fetches the category that matches with provided id",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved category",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(
+                                            implementation = ApiResponseDTO.class,
+                                            subTypes = {CategoryDTO.class}
+                                    ),
+                                    examples = @ExampleObject(
+                                            value = "{\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Food\"\n  },\n  \"timestamp\": \"2023-11-20T15:30:45.00Z\"\n}"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Requested category not found",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(
+                                            implementation = ApiResponseDTO.class
+                                    ),
+                                    examples = @ExampleObject(
+                                            value = "{\n  \"message\":[\"Category not found\"],\n  \"timestamp\":\"12:00:00 MM-YY-DD\"\n}"
+                                    )
+                            )
+                    )
+            }
+    )
+    ResponseEntity<ApiResponseDTO<CategoryDTO>> getCategoryById(String id);
+
+
 }

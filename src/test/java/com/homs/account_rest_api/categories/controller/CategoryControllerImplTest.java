@@ -2,6 +2,7 @@ package com.homs.account_rest_api.categories.controller;
 
 import com.homs.account_rest_api.categories.service.CategoryService;
 import com.homs.account_rest_api.categories.utils.DummyCategories;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import junit.framework.TestCase;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -73,6 +74,39 @@ public class CategoryControllerImplTest extends TestCase {
 
         MvcResult result = mockMvc.perform(get(baseUrl))
                 .andExpect(status().isNoContent())
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void shouldReturn200AndTheRequestedCategory() throws Exception {
+        when(categoryService.getCategoryById(anyString()))
+                .thenReturn(dummyCategories.getFood());
+
+        String expectedId = dummyCategories.getFood().getId();
+        String expectedName = dummyCategories.getFood().getName();
+
+        MvcResult result = mockMvc.perform(get(String.format("%s/{id}", baseUrl), "foodId"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(expectedId))
+                .andExpect(jsonPath("$.data.name").value(expectedName))
+                .andReturn();
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * HttpStatus 404 category not found. Return 404 and message when category was not found
+     * GET /api/categories/{id}
+     */
+    @Test
+    public void shouldReturn404WhenInvalidId() throws Exception {
+        when(categoryService.getCategoryById(anyString()))
+                .thenThrow(new ResourceNotFoundException("foodId"));
+
+        MvcResult result = mockMvc.perform(get(String.format("%s/{id}", baseUrl), "foodId"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message.length()").value(1))
                 .andReturn();
 
         log.info(result.getResponse().getContentAsString());
