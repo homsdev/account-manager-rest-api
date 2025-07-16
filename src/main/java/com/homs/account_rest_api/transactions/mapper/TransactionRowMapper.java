@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.mapper;
 
+import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.transactions.model.Transaction;
@@ -18,6 +19,10 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
                 .accountId(rs.getString("transaction_account"))
                 .build();
 
+        Category category = Category.builder()
+                .id(rs.getString("category_id"))
+                .build();
+
         return Transaction.builder()
                 .transactionId(rs.getString("transaction_id"))
                 .date(LocalDate.parse(rs.getString("transaction_date")))
@@ -25,6 +30,7 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
                 .type(TransactionType.valueOf(rs.getString("transaction_type")))
                 .amount(rs.getBigDecimal("transaction_amount"))
                 .account(account)
+                .category(category)
                 .build();
     }
 }

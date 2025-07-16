@@ -7,7 +7,7 @@ import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
 import com.homs.account_rest_api.transactions.model.Transaction;
-import com.homs.account_rest_api.transactions.model.TransactionMapper;
+import com.homs.account_rest_api.transactions.mapper.TransactionMapper;
 import com.homs.account_rest_api.transactions.service.TransactionService;
 import lombok.extern.java.Log;
 import org.junit.Before;

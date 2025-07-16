@@ -63,7 +63,7 @@ public class TransactionMysqlRepository implements TransactionRepository {
      * @param accountId {@link String}
      * @param month     {@link Month}
      * @param year      {@link Year}
-     * @return
+     * @return {@link List} of transactions
      */
     @Override
     public List<Transaction> getAllTransactionsByMonth(String accountId, Month month, Year year) {

@@ -2,6 +2,7 @@ package com.homs.account_rest_api.transactions.model;
 
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
+import com.homs.account_rest_api.transactions.mapper.TransactionMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.service;
 
+import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotCreatedException;
@@ -59,6 +60,17 @@ public class TransactionService {
         if (Objects.isNull(transaction)) {
             throw new TransactionInvalidData("Missing transaction info");
         }
+
+        Category category = Category.builder().build();
+
+        if (transaction.getCategory() == null) {
+            category.setId("eed64a18-20d2-4644-84d6-6d5dd7732db8");
+            category.setName("Others");
+        }
+
+        //TODO: Verify that category exist before saving
+
+        transaction.setCategory(category);
 
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Associated account does not exist"));

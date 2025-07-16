@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.model;
 
+import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.accounts.model.Account;
 import lombok.Builder;
@@ -15,6 +16,7 @@ public class Transaction {
     private BigDecimal amount;
     private TransactionType type;
     private LocalDate date;
-    private Account account;
     private String alias;
+    private Account account;
+    private Category category;
 }
