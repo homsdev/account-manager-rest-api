@@ -1,6 +1,7 @@
 package com.homs.account_rest_api.transactions.service;
 
 import com.homs.account_rest_api.categories.model.Category;
+import com.homs.account_rest_api.categories.repository.CategoryRepository;
 import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotCreatedException;
@@ -36,6 +37,7 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final CategoryRepository categoryRepository;
 
     /**
      * Saves the specified transaction
@@ -133,10 +135,20 @@ public class TransactionService {
                 throw new InvalidParametersException("Something went wrong with shared file");
             }
 
+            Map<String, Category> availableCategories = new HashMap<>();
+
             while ((line = reader.readLine()) != null) {
                 log.info("data line: {}", line);
                 if (line.trim().isEmpty()) continue;
                 String[] values = line.split(",");
+                String categoryId = values[5];
+
+
+                if (!availableCategories.containsKey(categoryId)) {
+                    Category newCategory = categoryRepository.getCategory(categoryId)
+                            .orElseThrow(() -> new ResourceNotFoundException(categoryId));
+                    availableCategories.put(newCategory.getId(), newCategory);
+                }
                 Transaction newTransaction = Transaction.builder()
                         .transactionId(UUID.randomUUID().toString())
                         .amount(new BigDecimal(values[0]))
@@ -144,7 +156,9 @@ public class TransactionService {
                         .date(LocalDate.parse(values[2]))
                         .account(Account.builder().accountId(values[3]).build())
                         .alias(values[4])
+                        .category(availableCategories.get(categoryId))
                         .build();
+
                 log.info("Created transaction: {}", newTransaction.toString());
                 Optional<Transaction> createdTrx = transactionRepository.saveTransaction(newTransaction);
                 createdTrx.ifPresent(trxs::add);

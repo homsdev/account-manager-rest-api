@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -85,6 +86,10 @@ public class TransactionControllerImpl implements TransactionController {
                         validateSelectedYear(year),
                         accountId
                 );
+
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(204)).build();
+        }
 
         ApiResponseDTO<List<Transaction>> response = ApiResponseDTO.<List<Transaction>>builder()
                 .data(transactions)

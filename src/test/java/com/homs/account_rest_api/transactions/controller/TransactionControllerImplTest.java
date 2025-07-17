@@ -2,6 +2,7 @@ package com.homs.account_rest_api.transactions.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.accounts.model.Account;
@@ -29,10 +30,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -60,6 +58,7 @@ public class TransactionControllerImplTest {
     private Transaction sampleTransaction;
     private Account sampleAccount;
     private CreateTransactionDTO sampleDTO;
+    private Category sampleCategory;
 
     private final String baseEndpoint = "/api/accounts/{accountId}/transactions";
 
@@ -70,6 +69,12 @@ public class TransactionControllerImplTest {
                 .balance(BigDecimal.valueOf(10_000))
                 .alias("Sample Account")
                 .build();
+
+        sampleCategory = Category.builder()
+                .id("sampleId")
+                .name("sample")
+                .build();
+
         sampleTransaction = Transaction.builder()
                 .transactionId(UUID.randomUUID().toString())
                 .amount(BigDecimal.valueOf(350.75))
@@ -77,6 +82,7 @@ public class TransactionControllerImplTest {
                 .date(LocalDate.now())
                 .alias("Streaming Services")
                 .account(sampleAccount)
+                .category(sampleCategory)
                 .build();
 
         sampleDTO = CreateTransactionDTO.builder()
@@ -92,8 +98,8 @@ public class TransactionControllerImplTest {
 
 
     /**
+     * Happy Path - createTransaction should create new resource
      * POST /api/accounts/{accountId}/transactions 201
-     * createTransaction Should create resource
      *
      * @throws Exception
      */
@@ -185,9 +191,61 @@ public class TransactionControllerImplTest {
         log.info(result.getResponse().getContentAsString());
     }
 
+    /**
+     * HappyPath 200 - getTransactions should return the list of transactions
+     * GET /api/accounts/{accountId}/transactions?month=JUNE&year=2025
+     */
+    @Test
+    public void getTransactionsWithoutParamsShouldReturnCurrentMonthData() throws Exception {
+
+        when(transactionService.getAllTransactionsByMonthAndYear(any(), any(), anyString()))
+                .thenReturn(List.of(sampleTransaction, sampleTransaction));
+
+        MvcResult result = mockMvc.perform(
+                get(baseEndpoint, "accountId")
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * GET /api/accounts/{accountId}/transactions?month=JUNE&year=2025 200
+     *
+     * @throws Exception
+     */
+    @Test
+    public void getTransactionsByMonthAndYearReturnsListOfTransactions() throws Exception {
+        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class), any(Year.class), anyString()))
+                .thenReturn(List.of(sampleTransaction));
+        String uri = String.format("%s?month=june&year=2025", baseEndpoint);
+        MvcResult result = mockMvc.perform(
+                        get(uri, sampleAccount.getAccountId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk())
+                .andReturn();
+
+        log.info(result.getResponse().getContentAsString());
+    }
+
+    /**
+     * Alternative 204 - Should return no content when there are no records that satisfy given parameters
+     * GET /api/accounts/{accountId}/transactions?month=JUNE&year=2025 204
+     */
+    @Test
+    public void shouldReturn204WhenNoTransactions() throws Exception {
+        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class), any(Year.class), anyString()))
+                .thenReturn(Collections.emptyList());
+        String uri = String.format("%s?month=june&year=2025", baseEndpoint);
+        MvcResult result = mockMvc.perform(get(uri, "accountId"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+        log.info(result.getResponse().getContentAsString());
+    }
 
     /**
      * GET /api/accounts/{accountId}/transactions 400
+     *
      * @throws Exception
      */
     @Test
@@ -217,6 +275,7 @@ public class TransactionControllerImplTest {
     /**
      * GET /api/accounts/{accountId}/transactions 404
      * Account does not exists
+     *
      * @throws Exception
      */
     @Test
@@ -228,41 +287,6 @@ public class TransactionControllerImplTest {
                         get("/api/{accountId}/transaction?month=june&year=2025", sampleAccount.getAccountId())
                                 .contentType(MediaType.APPLICATION_JSON)
                 ).andExpect(status().isNotFound())
-                .andReturn();
-
-        log.info(result.getResponse().getContentAsString());
-    }
-
-    /**
-     * GET /api/accounts/{accountId}/transactions?month=JUNE&year=2025 200
-     */
-    @Test
-    public void getTransactionsWithoutParamsShouldReturnCurrentMonthData() throws Exception {
-
-        when(transactionService.getAllTransactionsByMonthAndYear(any(),any(),anyString()))
-                .thenReturn(List.of(sampleTransaction,sampleTransaction));
-
-        MvcResult result = mockMvc.perform(
-                get(baseEndpoint,"accountId")
-                        .contentType(MediaType.APPLICATION_JSON)
-        ).andReturn();
-
-        log.info(result.getResponse().getContentAsString());
-    }
-
-    /**
-     * GET /api/accounts/{accountId}/transactions?month=JUNE&year=2025 200
-     * @throws Exception
-     */
-    @Test
-    public void getTransactionsByMonthAndYearReturnsListOfTransactions() throws Exception {
-        when(transactionService.getAllTransactionsByMonthAndYear(any(Month.class), any(Year.class), anyString()))
-                .thenReturn(List.of(sampleTransaction));
-        String uri = String.format("%s?month=june&year=2025", baseEndpoint);
-        MvcResult result = mockMvc.perform(
-                        get(uri, sampleAccount.getAccountId())
-                                .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(status().isOk())
                 .andReturn();
 
         log.info(result.getResponse().getContentAsString());
