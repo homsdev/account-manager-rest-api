@@ -1,4 +1,4 @@
-package com.homs.account_rest_api.categories.utils;
+package com.homs.account_rest_api.mocks;
 
 import com.homs.account_rest_api.categories.model.Category;
 import lombok.Getter;
@@ -10,6 +10,7 @@ public class DummyCategories {
     private final Category food;
     private final Category games;
     private final Category movies;
+    private final Category dummy;
     private final List<Category> dummyCategoriesList;
 
     public DummyCategories() {
@@ -24,6 +25,10 @@ public class DummyCategories {
         movies = Category.builder()
                 .id("moviesId")
                 .name("movies")
+                .build();
+        dummy = Category.builder()
+                .id("dummyId")
+                .name("dummyName")
                 .build();
         dummyCategoriesList = List.of(food, games, movies);
     }

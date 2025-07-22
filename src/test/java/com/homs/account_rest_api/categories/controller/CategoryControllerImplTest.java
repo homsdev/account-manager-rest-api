@@ -1,7 +1,7 @@
 package com.homs.account_rest_api.categories.controller;
 
 import com.homs.account_rest_api.categories.service.CategoryService;
-import com.homs.account_rest_api.categories.utils.DummyCategories;
+import com.homs.account_rest_api.mocks.DummyCategories;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import junit.framework.TestCase;
 import lombok.extern.slf4j.Slf4j;

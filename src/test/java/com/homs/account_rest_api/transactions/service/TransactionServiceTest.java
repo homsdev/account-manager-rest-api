@@ -1,6 +1,7 @@
 package com.homs.account_rest_api.transactions.service;
 
 import com.homs.account_rest_api.exception.InvalidParametersException;
+import com.homs.account_rest_api.mocks.DummyTransactions;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.accounts.model.Account;
@@ -52,9 +53,11 @@ public class TransactionServiceTest {
     private Transaction sampleTransaction;
     private Transaction sampleIncomeTransaction;
     private final BigDecimal accountBalanceTest = BigDecimal.valueOf(10_500.50);
+    private DummyTransactions dummyTransactions;
 
     @Before
     public void setUp() {
+        dummyTransactions = new DummyTransactions();
         sampleAccount = Account.builder()
                 .accountId(UUID.randomUUID().toString())
                 .alias("Account A")
@@ -97,6 +100,9 @@ public class TransactionServiceTest {
         verify(transactionRepository, never()).saveTransaction(any());
     }
 
+    /**
+     * Validate that every registered income adds to linked account balance
+     */
     @Test
     public void assertIncomeAddsToAccountBalance() {
         BigDecimal expectedBalance = BigDecimal.valueOf(23_251.25);
@@ -118,6 +124,9 @@ public class TransactionServiceTest {
                 , expectedBalance, accountCaptor.getValue().getBalance());
     }
 
+    /**
+     * Validate that every registered expense subtracts from linked account
+     */
     @Test
     public void assertExpenseSubtractsToAccountBalance() {
         BigDecimal expectedBalance = BigDecimal.valueOf(9_749.51);
@@ -136,6 +145,9 @@ public class TransactionServiceTest {
         assertEquals(expectedBalance, accountCaptor.getValue().getBalance());
     }
 
+    /**
+     * Validates rollback if account balance update operation fails
+     */
     @Test
     public void assertTransactionRollBackWhenUpdateBalanceFail() {
         when(accountRepository.findById(any()))
@@ -152,50 +164,56 @@ public class TransactionServiceTest {
         verify(transactionRepository, never()).saveTransaction(any());
     }
 
-    @Test(expected = TransactionInvalidData.class)
-    public void assertSaveTransactionThrowsExceptionWhenReceiveNullValue() {
-        when(accountRepository.findById(any()))
-                .thenReturn(Optional.of(sampleAccount));
-        when(accountRepository.updateBalance(any()))
-                .thenReturn(Optional.of(sampleAccount));
-        when(transactionRepository.saveTransaction(any()))
-                .thenReturn(Optional.of(sampleTransaction));
-        transactionService.saveTransaction(null, null);
+    /**
+     * Validates saveTransaction throws TransactionInvalidData("Missing account info");
+     * When account info is missing
+     */
+    @Test
+    public void shouldThrowExceptionWhenMissingAccountData() {
+        assertThrows(TransactionInvalidData.class,
+                () -> transactionService.saveTransaction(sampleTransaction, null));
     }
 
-    @Test(expected = TransactionInvalidData.class)
-    public void assertSaveTransactionThrowsExceptionWhenReqPropertiesAreNull() {
-        when(accountRepository.findById(any()))
-                .thenReturn(Optional.of(sampleAccount));
-        when(accountRepository.updateBalance(any()))
-                .thenReturn(Optional.of(sampleAccount));
-        when(transactionRepository.saveTransaction(any()))
-                .thenReturn(Optional.of(sampleTransaction));
-        transactionService.saveTransaction(
-                Transaction.builder().build(),
-                null);
+    /**
+     * Should Throw TransactionInvalidData
+     * When transaction info is missing
+     */
+    @Test
+    public void shouldThrowExceptionWhenMissingTransactionData() {
+        assertThrows(TransactionInvalidData.class,
+                () -> transactionService.saveTransaction(null, "accountId"));
     }
 
+    /**
+     * getAllTransactionsByMonthAndYear() Should return list of valid data
+     * When called with any month and year
+     */
     @Test
     public void getAllTransactionsByMonthAndYearShouldReturnListOfTransactions() {
-        Transaction a = Transaction.builder().build();
-        Transaction b = Transaction.builder().build();
-        Transaction c = Transaction.builder().build();
+        Transaction services = dummyTransactions.getServices();
+        Transaction groceries = dummyTransactions.getGroceries();
+        Transaction salary = dummyTransactions.getSalary();
 
         when(accountRepository.findById(anyString()))
                 .thenReturn(Optional.of(sampleAccount));
+
         when(transactionRepository.getAllTransactionsByMonth(anyString(), any(Month.class), any(Year.class)))
-                .thenReturn(List.of(a, b, c));
+                .thenReturn(List.of(services,groceries,salary));
 
         List<Transaction> result = transactionService.getAllTransactionsByMonthAndYear(
                 Month.APRIL, Year.now(), "accountId"
         );
 
+        log.info(String.valueOf(result.get(0)));
         assertEquals(3, result.size());
     }
 
+    /**
+     * getAllTransactionsByMonthAndYear() should throw ResourceNotFoundException
+     * When passed invalid accountId
+     */
     @Test()
-    public void getAllTransactionsByMonthAndYearShouldThrowResourceNotFoundIfInvalidAccount() {
+    public void shouldThrowResourceNotFoundExceptionWhenInvalidAccount() {
         when(accountRepository.findById(anyString()))
                 .thenReturn(Optional.empty());
 
@@ -206,6 +224,10 @@ public class TransactionServiceTest {
         ));
     }
 
+    /**
+     * getAllTransactionsByMonthAndYear() should return EmptyList
+     * When there is no transactions found for the given period
+     */
     @Test
     public void getAllTransactionsByMonthAndYearShouldReturnEmptyListIfCurrentAccountDoesNoHaveTransactions() {
         when(accountRepository.findById(anyString()))
@@ -225,11 +247,11 @@ public class TransactionServiceTest {
     @Test
     public void loadTransactionsShouldReadCSVContent() {
         String csvContent = """
-                Amount,Type,Date,Account,Alias
-                1000.50,INCOME,2024-04-15,ACC12345,Salary
-                -150.75,EXPENSE,2024-04-16,ACC67890,Grocery
-                250.00,INCOME,2024-04-17,ACC12345,Freelance
-                -50.00,EXPENSE,2024-04-18,ACC67890,Utilities
+                Amount,Type,Date,Account,Alias,categoryId
+                1000.50,INCOME,2024-04-15,ACC12345,Salary,categoryId
+                -150.75,EXPENSE,2024-04-16,ACC67890,Grocery,categoryId
+                250.00,INCOME,2024-04-17,ACC12345,Freelance,categoryId
+                -50.00,EXPENSE,2024-04-18,ACC67890,Utilities,categoryId
                 """;
         MultipartFile mockFile = new MockMultipartFile(
                 "file",
@@ -248,7 +270,7 @@ public class TransactionServiceTest {
     public void loadTransactionsShouldSkipEmptyLines() {
         String csvContent = """
                 Amount,Type,Date,Account,Alias
-                
+                                
                 """;
         MultipartFile mockFile = new MockMultipartFile(
                 "file",

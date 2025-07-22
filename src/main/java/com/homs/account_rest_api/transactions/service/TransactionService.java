@@ -39,6 +39,11 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private final CategoryRepository categoryRepository;
 
+    private static final Category DEFAULT_CATEGORY = Category.builder()
+            .id("eed64a18-20d2-4644-84d6-6d5dd7732db8")
+            .name("Others")
+            .build();
+
     /**
      * Saves the specified transaction
      * <p>
@@ -63,14 +68,13 @@ public class TransactionService {
             throw new TransactionInvalidData("Missing transaction info");
         }
 
-        Category category = Category.builder().build();
+        String categoryId = Optional.ofNullable(transaction.getCategory())
+                .map(Category::getId)
+                .orElse(null);
 
-        if (transaction.getCategory() == null) {
-            category.setId("eed64a18-20d2-4644-84d6-6d5dd7732db8");
-            category.setName("Others");
-        }
-
-        //TODO: Verify that category exist before saving
+        Category category = Optional.ofNullable(categoryId)
+                .flatMap(categoryRepository::getCategory)
+                .orElse(DEFAULT_CATEGORY);
 
         transaction.setCategory(category);
 
@@ -143,12 +147,12 @@ public class TransactionService {
                 String[] values = line.split(",");
                 String categoryId = values[5];
 
-
                 if (!availableCategories.containsKey(categoryId)) {
                     Category newCategory = categoryRepository.getCategory(categoryId)
-                            .orElseThrow(() -> new ResourceNotFoundException(categoryId));
+                                            .orElse(DEFAULT_CATEGORY);
                     availableCategories.put(newCategory.getId(), newCategory);
                 }
+
                 Transaction newTransaction = Transaction.builder()
                         .transactionId(UUID.randomUUID().toString())
                         .amount(new BigDecimal(values[0]))

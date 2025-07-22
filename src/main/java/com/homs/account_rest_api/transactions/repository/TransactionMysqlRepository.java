@@ -43,8 +43,6 @@ public class TransactionMysqlRepository implements TransactionRepository {
     public Optional<Transaction> saveTransaction(final Transaction transaction) {
 
         if (!Boolean.TRUE.equals(isValid(transaction))) throw new TransactionInvalidData("Missing transaction data");
-        log.info("Saving transaction into database");
-        log.info("amount: {}", transaction.getAmount().setScale(2, RoundingMode.HALF_UP));
         Map<String, Object> params = new HashMap<>();
         params.put("transactionId", transaction.getTransactionId());
         params.put("amount", transaction.getAmount().setScale(2, RoundingMode.HALF_UP));
@@ -52,6 +50,7 @@ public class TransactionMysqlRepository implements TransactionRepository {
         params.put("date", transaction.getDate().toString());
         params.put("accountId", transaction.getAccount().getAccountId());
         params.put("alias", transaction.getAlias());
+        params.put("categoryId", transaction.getCategory().getId());
 
         int result = jdbcTemplate.update(saveTransactionQuery, params);
         return result > 0 ? Optional.of(transaction) : Optional.empty();
