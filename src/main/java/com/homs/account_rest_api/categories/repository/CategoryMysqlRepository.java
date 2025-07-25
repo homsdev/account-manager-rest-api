@@ -27,6 +27,9 @@ public class CategoryMysqlRepository implements CategoryRepository {
     @Value("${category.findById}")
     private String findByIdQuery;
 
+    @Value("${category.findByName}")
+    private String findByNameQuery;
+
     /**
      * Retrieves all category records from the database.
      *
@@ -35,9 +38,8 @@ public class CategoryMysqlRepository implements CategoryRepository {
      *
      * @return An immutable {@link List} of {@link Category} objects,
      * guaranteed non-null. Returns an empty list if no categories exist.
-     *
      * @throws org.springframework.dao.DataAccessException if there's any problem executing the query or
-     * mapping results (e.g., SQL syntax error, connection issues)
+     *                                                     mapping results (e.g., SQL syntax error, connection issues)
      */
     @Override
     public List<Category> getAllCategories() {
@@ -52,9 +54,8 @@ public class CategoryMysqlRepository implements CategoryRepository {
      *
      * @param id {@link String} the unique identifier of the category to retrieve
      * @return An {@link Optional} of {@link Category} returns an empty optional if no match
-     *
      * @throws org.springframework.dao.DataAccessException if there's any problem executing the query or
-     * mapping results (e.g., SQL syntax error, connection issues)
+     *                                                     mapping results (e.g., SQL syntax error, connection issues)
      */
     @Override
     public Optional<Category> getCategory(String id) {
@@ -62,5 +63,25 @@ public class CategoryMysqlRepository implements CategoryRepository {
         params.put("id", id);
         return jdbcTemplate.query(findByIdQuery, params, new CategoryRowMapper())
                 .stream().findFirst();
+    }
+
+    /**
+     * Retrieves a category record by its name
+     *
+     * <p>This methods executes a SQL query to fetch an specific category,
+     * mapping the result row to a {@link Category} using {@link CategoryRowMapper}.</p>
+     *
+     * @param name {@link String} the name of the category to search
+     * @return an {@link Optional} containing the first matching {@link Category} if found,
+     * or {@link Optional#empty()} if no category exists with the given name
+     * @throws org.springframework.dao.DataAccessException if there's any problem executing the query or
+     *                                                     mapping results (e.g., SQL syntax error, connection issues)
+     */
+    @Override
+    public Optional<Category> getByName(String name) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("categoryName", name);
+        List<Category> results = jdbcTemplate.query(findByNameQuery, params, new CategoryRowMapper());
+        return results.stream().findFirst();
     }
 }

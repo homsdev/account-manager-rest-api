@@ -145,12 +145,12 @@ public class TransactionService {
                 log.info("data line: {}", line);
                 if (line.trim().isEmpty()) continue;
                 String[] values = line.split(",");
-                String categoryId = values[5];
+                String categoryName = values[5];
 
-                if (!availableCategories.containsKey(categoryId)) {
-                    Category newCategory = categoryRepository.getCategory(categoryId)
-                                            .orElse(DEFAULT_CATEGORY);
-                    availableCategories.put(newCategory.getId(), newCategory);
+                if (!availableCategories.containsKey(categoryName)) {
+                    Category currentCategory = categoryRepository.getByName(categoryName)
+                                    .orElse(DEFAULT_CATEGORY);
+                    availableCategories.put(currentCategory.getName(), currentCategory);
                 }
 
                 Transaction newTransaction = Transaction.builder()
@@ -160,7 +160,7 @@ public class TransactionService {
                         .date(LocalDate.parse(values[2]))
                         .account(Account.builder().accountId(values[3]).build())
                         .alias(values[4])
-                        .category(availableCategories.get(categoryId))
+                        .category(availableCategories.get(categoryName))
                         .build();
 
                 log.info("Created transaction: {}", newTransaction.toString());

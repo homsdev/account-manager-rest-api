@@ -67,7 +67,7 @@ public class CategoryMysqlRepositoryTest extends TestCase {
 
     @Test
     public void shouldReturnEmptyList() {
-        when(jdbcTemplate.query(anyString(),any(CategoryRowMapper.class)))
+        when(jdbcTemplate.query(anyString(), any(CategoryRowMapper.class)))
                 .thenReturn(Collections.emptyList());
 
         List<Category> allCategories = categoryRepository.getAllCategories();
@@ -77,7 +77,7 @@ public class CategoryMysqlRepositoryTest extends TestCase {
 
     @Test
     public void shouldReturnRequestedValue() {
-        when(jdbcTemplate.query(anyString(),anyMap(),any(CategoryRowMapper.class)))
+        when(jdbcTemplate.query(anyString(), anyMap(), any(CategoryRowMapper.class)))
                 .thenReturn(Collections.singletonList(food));
 
         Optional<Category> result = categoryRepository.getCategory("foodId");
@@ -87,11 +87,28 @@ public class CategoryMysqlRepositoryTest extends TestCase {
 
     @Test
     public void shouldReturnValueNotFound() {
-        when(jdbcTemplate.query(anyString(),anyMap(),any(CategoryRowMapper.class)))
+        when(jdbcTemplate.query(anyString(), anyMap(), any(CategoryRowMapper.class)))
                 .thenReturn(Collections.emptyList());
 
         Optional<Category> result = categoryRepository.getCategory("restaurantsId");
 
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void shouldReturnCategoryWhenValidName() {
+        when(jdbcTemplate.query(anyString(), anyMap(), any(CategoryRowMapper.class)))
+                .thenReturn(List.of(videogames));
+        Optional<Category> res = categoryRepository.getByName("videogames");
+        assertTrue(res.isPresent());
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenNameNotFound() {
+        when(jdbcTemplate.query(anyString(), anyMap(), any(CategoryRowMapper.class)))
+                .thenReturn(Collections.emptyList());
+
+        Optional<Category> res = categoryRepository.getByName("non-existent-name");
+        assertTrue(res.isEmpty());
     }
 }

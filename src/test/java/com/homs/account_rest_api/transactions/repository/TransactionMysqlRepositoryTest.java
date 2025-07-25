@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.repository;
 
+import com.homs.account_rest_api.mocks.DummyTransactions;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.transactions.mapper.TransactionRowMapper;
@@ -38,8 +39,11 @@ public class TransactionMysqlRepositoryTest {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    private DummyTransactions dummyTransactions;
+
     @Before
-    public void setUp(){
+    public void setUp() {
+        dummyTransactions = new DummyTransactions();
         Account sampleAccount = Account.builder()
                 .accountId(UUID.randomUUID().toString())
                 .alias("sampleAccount")
@@ -47,7 +51,7 @@ public class TransactionMysqlRepositoryTest {
                 .build();
         sampleTransaction = Transaction.builder()
                 .transactionId(UUID.randomUUID().toString())
-                .date(LocalDate.of(2024,10,15))
+                .date(LocalDate.of(2024, 10, 15))
                 .type(TransactionType.EXPENSE)
                 .amount(BigDecimal.valueOf(750.99))
                 .account(sampleAccount)
@@ -63,7 +67,7 @@ public class TransactionMysqlRepositoryTest {
         when(jdbcTemplate.update(anyString(), anyMap()))
                 .thenReturn(1);
 
-        Optional<Transaction> transaction = transactionRepository.saveTransaction(sampleTransaction);
+        Optional<Transaction> transaction = transactionRepository.saveTransaction(dummyTransactions.getGroceries());
         assertFalse(transaction.isEmpty());
 
         Transaction actualResult = transaction.get();
@@ -76,10 +80,10 @@ public class TransactionMysqlRepositoryTest {
      */
     @Test
     public void saveTransactionShouldReturnEmptyOptionalWhenFails() {
-        when(jdbcTemplate.update(anyString(),anyMap()))
+        when(jdbcTemplate.update(anyString(), anyMap()))
                 .thenReturn(0);
 
-        Optional<Transaction> transaction = transactionRepository.saveTransaction(sampleTransaction);
+        Optional<Transaction> transaction = transactionRepository.saveTransaction(dummyTransactions.getGroceries());
 
         assertTrue(transaction.isEmpty());
     }
@@ -102,26 +106,26 @@ public class TransactionMysqlRepositoryTest {
         Transaction a = Transaction.builder().build();
         Transaction b = Transaction.builder().build();
         Transaction c = Transaction.builder().build();
-        List<Transaction> expectedTransactions = List.of(a,b,c);
+        List<Transaction> expectedTransactions = List.of(a, b, c);
 
-        Map<String,Object> expectedQueryParams = new HashMap<>();
-        expectedQueryParams.put("accountId","sampleId");
-        expectedQueryParams.put("year",2025);
-        expectedQueryParams.put("month",12);
+        Map<String, Object> expectedQueryParams = new HashMap<>();
+        expectedQueryParams.put("accountId", "sampleId");
+        expectedQueryParams.put("year", 2025);
+        expectedQueryParams.put("month", 12);
 
-        when(jdbcTemplate.query(anyString(),anyMap(),any(TransactionRowMapper.class)))
+        when(jdbcTemplate.query(anyString(), anyMap(), any(TransactionRowMapper.class)))
                 .thenReturn(expectedTransactions);
         List<Transaction> result = transactionRepository
                 .getAllTransactionsByMonth("sampleId", Month.DECEMBER, Year.now());
-        assertEquals(3,result.size());
-        verify(jdbcTemplate).query(anyString(),eq(expectedQueryParams),any(TransactionRowMapper.class));
+        assertEquals(3, result.size());
+        verify(jdbcTemplate).query(anyString(), eq(expectedQueryParams), any(TransactionRowMapper.class));
     }
 
     @Test
-    public void getAllTransactionsByMonth_shouldReturnEmptyListWithNoSelectedAccount(){
+    public void getAllTransactionsByMonth_shouldReturnEmptyListWithNoSelectedAccount() {
         List<Transaction> result = transactionRepository
-                .getAllTransactionsByMonth("",Month.APRIL,Year.now());
-        assertEquals(0,result.size());
+                .getAllTransactionsByMonth("", Month.APRIL, Year.now());
+        assertEquals(0, result.size());
         assertTrue(result.isEmpty());
     }
 }
