@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.dto;
 
+import com.homs.account_rest_api.categories.dto.CategoryDTO;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -27,4 +28,6 @@ public class CreateTransactionDTO {
     @NotNull(message = "Description is required")
     @NotBlank(message = "Description cannot be blank")
     private String description;
+
+    private CategoryDTO categoryDTO;
 }

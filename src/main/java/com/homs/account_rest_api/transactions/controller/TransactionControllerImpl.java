@@ -4,14 +4,14 @@ import com.homs.account_rest_api.dto.ApiResponseDTO;
 import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.transactions.model.Transaction;
-import com.homs.account_rest_api.transactions.model.TransactionMapper;
+import com.homs.account_rest_api.transactions.mapper.TransactionMapper;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
 import com.homs.account_rest_api.transactions.service.TransactionService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -86,6 +86,10 @@ public class TransactionControllerImpl implements TransactionController {
                         validateSelectedYear(year),
                         accountId
                 );
+
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(204)).build();
+        }
 
         ApiResponseDTO<List<Transaction>> response = ApiResponseDTO.<List<Transaction>>builder()
                 .data(transactions)

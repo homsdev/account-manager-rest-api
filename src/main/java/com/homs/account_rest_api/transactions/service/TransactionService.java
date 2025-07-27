@@ -1,5 +1,7 @@
 package com.homs.account_rest_api.transactions.service;
 
+import com.homs.account_rest_api.categories.model.Category;
+import com.homs.account_rest_api.categories.repository.CategoryRepository;
 import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.exception.ResourceNotCreatedException;
@@ -35,6 +37,12 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final CategoryRepository categoryRepository;
+
+    private static final Category DEFAULT_CATEGORY = Category.builder()
+            .id("eed64a18-20d2-4644-84d6-6d5dd7732db8")
+            .name("Others")
+            .build();
 
     /**
      * Saves the specified transaction
@@ -59,6 +67,16 @@ public class TransactionService {
         if (Objects.isNull(transaction)) {
             throw new TransactionInvalidData("Missing transaction info");
         }
+
+        String categoryId = Optional.ofNullable(transaction.getCategory())
+                .map(Category::getId)
+                .orElse(null);
+
+        Category category = Optional.ofNullable(categoryId)
+                .flatMap(categoryRepository::getCategory)
+                .orElse(DEFAULT_CATEGORY);
+
+        transaction.setCategory(category);
 
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Associated account does not exist"));
@@ -121,10 +139,20 @@ public class TransactionService {
                 throw new InvalidParametersException("Something went wrong with shared file");
             }
 
+            Map<String, Category> availableCategories = new HashMap<>();
+
             while ((line = reader.readLine()) != null) {
                 log.info("data line: {}", line);
                 if (line.trim().isEmpty()) continue;
                 String[] values = line.split(",");
+                String categoryName = values[5];
+
+                if (!availableCategories.containsKey(categoryName)) {
+                    Category currentCategory = categoryRepository.getByName(categoryName)
+                                    .orElse(DEFAULT_CATEGORY);
+                    availableCategories.put(currentCategory.getName(), currentCategory);
+                }
+
                 Transaction newTransaction = Transaction.builder()
                         .transactionId(UUID.randomUUID().toString())
                         .amount(new BigDecimal(values[0]))
@@ -132,7 +160,9 @@ public class TransactionService {
                         .date(LocalDate.parse(values[2]))
                         .account(Account.builder().accountId(values[3]).build())
                         .alias(values[4])
+                        .category(availableCategories.get(categoryName))
                         .build();
+
                 log.info("Created transaction: {}", newTransaction.toString());
                 Optional<Transaction> createdTrx = transactionRepository.saveTransaction(newTransaction);
                 createdTrx.ifPresent(trxs::add);
