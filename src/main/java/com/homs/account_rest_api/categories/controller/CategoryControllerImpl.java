@@ -7,15 +7,17 @@ import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.categories.service.CategoryService;
 import com.homs.account_rest_api.dto.ApiResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -32,7 +34,7 @@ public class CategoryControllerImpl implements CategoryController {
         List<Category> allCategories = categoryService.getAllCategories();
 
         if (allCategories.isEmpty()) {
-            return ResponseEntity.status(204).body(null);
+            return ResponseEntity.noContent().build();
         }
 
         CategoryListResponseDTO categoriesDto = categoryMapper.toCategoryListResponseDTO(allCategories);
@@ -42,6 +44,11 @@ public class CategoryControllerImpl implements CategoryController {
                 .data(categoriesDto)
                 .timestamp(Instant.now())
                 .build();
+
+        Link link = Link.of("/api/categories/{id}")
+                .withRel("find")
+                .withType("GET");
+        res.add(link);
 
         return ResponseEntity.ok(res);
     }
@@ -58,6 +65,10 @@ public class CategoryControllerImpl implements CategoryController {
                 .data(categoryDto)
                 .timestamp(Instant.now())
                 .build();
+
+        res.add(linkTo(
+                methodOn(CategoryControllerImpl.class).getAllCategories()
+        ).withRel("collection").withType("GET"));
 
         return ResponseEntity.ok(res);
     }
