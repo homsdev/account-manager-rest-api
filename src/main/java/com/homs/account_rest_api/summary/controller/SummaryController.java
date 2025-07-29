@@ -1,6 +1,7 @@
 package com.homs.account_rest_api.summary.controller;
 
 import com.homs.account_rest_api.dto.ApiResponseDTO;
+import com.homs.account_rest_api.summary.dto.CategoriesSummaryDto;
 import com.homs.account_rest_api.summary.dto.SummaryDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -72,5 +73,5 @@ public interface SummaryController {
                     ),
             }
     )
-    public ResponseEntity<ApiResponseDTO<SummaryDto>> getCategorySummary();
+    public ResponseEntity<ApiResponseDTO<CategoriesSummaryDto>> getCategorySummary();
 }
