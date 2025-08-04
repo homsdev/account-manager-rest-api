@@ -1,7 +1,9 @@
 package com.homs.account_rest_api.transactions.mapper;
 
+import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.categories.dto.CategoryDTO;
 import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
+import com.homs.account_rest_api.transactions.dto.TransactionDto;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.transactions.model.Transaction;
 import junit.framework.TestCase;
@@ -55,6 +57,27 @@ public class TransactionMapperTest extends TestCase {
         assertEquals("Gamepass", entity.getAlias());
         assertEquals("foodId", entity.getCategory().getId());
         assertEquals("food", entity.getCategory().getName());
+    }
+
+    @Test
+    public void shouldMapTransactionToTransactionDto() {
+        Transaction entity = Transaction.builder()
+                .transactionId("transactionId")
+                .amount(BigDecimal.valueOf(10_000))
+                .type(TransactionType.INCOME)
+                .date(LocalDate.now())
+                .alias("transaction alias")
+                .account(Account.builder().accountId("accountId").build())
+                .build();
+        TransactionDto dto = transactionMapper.toTransactionDto(entity);
+        assertNotNull(dto);
+        assertEquals(entity.getTransactionId(),dto.getId());
+        assertEquals(entity.getAmount(),dto.getAmount());
+        assertEquals(entity.getType(),dto.getType());
+        assertEquals(entity.getDate(),dto.getDate());
+        assertEquals(entity.getAlias(),dto.getAlias());
+
+        assertNull(transactionMapper.toTransactionDto(null));
     }
 
     @Test
