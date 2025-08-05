@@ -3,7 +3,6 @@ package com.homs.account_rest_api.categories.mapper;
 import com.homs.account_rest_api.categories.model.Category;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.sql.ResultSet;
