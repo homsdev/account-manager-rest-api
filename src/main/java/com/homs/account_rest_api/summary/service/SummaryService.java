@@ -2,7 +2,6 @@ package com.homs.account_rest_api.summary.service;
 
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.accounts.repository.AccountRepository;
-import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.categories.repository.CategoryRepository;
 import com.homs.account_rest_api.summary.dto.CategoriesSummaryDto;
 import com.homs.account_rest_api.summary.dto.CategorySummaryDto;
@@ -135,9 +134,9 @@ public class SummaryService {
 
         BigDecimal totalExpenses = calculateTotalExpenses(expenses);
 
-        Map<Category, BigDecimal> categoryTotals = expenses.stream()
+        Map<String, BigDecimal> categoryTotals = expenses.stream()
                 .collect(Collectors.groupingBy(
-                        Transaction::getCategory,
+                        trx->trx.getCategory().getId(),
                         Collectors.reducing(
                                 BigDecimal.ZERO,
                                 Transaction::getAmount,
@@ -148,7 +147,7 @@ public class SummaryService {
         List<CategorySummaryDto> categorySummaries = categoryRepository.getAllCategories().stream()
                 .map(category -> CategorySummaryDto.builder()
                         .category(category.getName())
-                        .total(categoryTotals.getOrDefault(category, BigDecimal.ZERO))
+                        .total(categoryTotals.getOrDefault(category.getId(), BigDecimal.ZERO))
                         .build()
                 ).toList();
 
