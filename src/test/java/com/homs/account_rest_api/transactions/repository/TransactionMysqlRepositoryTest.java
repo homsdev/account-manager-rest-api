@@ -2,11 +2,9 @@ package com.homs.account_rest_api.transactions.repository;
 
 import com.homs.account_rest_api.mocks.DummyTransactions;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
-import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.transactions.mapper.TransactionRowMapper;
 import com.homs.account_rest_api.transactions.model.Transaction;
 import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +14,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.util.*;
@@ -31,7 +27,6 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @ActiveProfiles("Test")
 public class TransactionMysqlRepositoryTest {
-    private Transaction sampleTransaction;
 
     @MockBean
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -41,23 +36,6 @@ public class TransactionMysqlRepositoryTest {
 
     private DummyTransactions dummyTransactions;
 
-    @Before
-    public void setUp() {
-        dummyTransactions = new DummyTransactions();
-        Account sampleAccount = Account.builder()
-                .accountId(UUID.randomUUID().toString())
-                .alias("sampleAccount")
-                .balance(BigDecimal.valueOf(10_000.50))
-                .build();
-        sampleTransaction = Transaction.builder()
-                .transactionId(UUID.randomUUID().toString())
-                .date(LocalDate.of(2024, 10, 15))
-                .type(TransactionType.EXPENSE)
-                .amount(BigDecimal.valueOf(750.99))
-                .account(sampleAccount)
-                .alias("DISNEY+")
-                .build();
-    }
 
     /**
      * Test to assert when update operation success it returns 1 row affected

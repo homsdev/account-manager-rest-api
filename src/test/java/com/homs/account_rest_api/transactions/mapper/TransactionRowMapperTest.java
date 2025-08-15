@@ -19,7 +19,7 @@ public class TransactionRowMapperTest {
     private ResultSet rs;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         rs = mock(ResultSet.class);
         transactionMapper = new TransactionRowMapper();
     }

@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 
-@Tag(name = "Category Management", description = "API endpoints for managing expense categories")
+@Tag(name = "Category", description = "API endpoints for managing expense categories")
 public interface CategoryController {
 
     @Operation(

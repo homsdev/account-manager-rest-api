@@ -12,6 +12,7 @@ public class DummyTransactions {
     private final Transaction groceries;
     private final Transaction services;
     private final Transaction salary;
+    private final Transaction laptop;
 
     public DummyTransactions() {
         DummyCategories dummyCategories = new DummyCategories();
@@ -42,6 +43,15 @@ public class DummyTransactions {
                 .alias("Payday")
                 .account(dummyAccounts.getMainAccount())
                 .category(dummyCategories.getDummy())
+                .build();
+        this.laptop = Transaction.builder()
+                .transactionId("laptopId")
+                .amount(BigDecimal.valueOf(10_000))
+                .type(TransactionType.EXPENSE)
+                .date(LocalDate.now())
+                .alias("laptop")
+                .account(null)
+                .category(null)
                 .build();
     }
 }
