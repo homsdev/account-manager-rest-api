@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("Test")
+@ActiveProfiles("test")
 @Slf4j
 public class SummaryServiceTest {
 

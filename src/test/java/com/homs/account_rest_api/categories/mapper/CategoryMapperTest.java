@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("Test")
+@ActiveProfiles("test")
 public class CategoryMapperTest extends TestCase {
 
     @Autowired

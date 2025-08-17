@@ -2,8 +2,11 @@ package com.homs.account_rest_api.categories.repository;
 
 import com.homs.account_rest_api.categories.mapper.CategoryRowMapper;
 import com.homs.account_rest_api.categories.model.Category;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +18,9 @@ import java.util.Optional;
 /**
  * Category Repository Mysql Implementation
  */
+@Slf4j
 @Repository
+@Profile({"test","prod"})
 @RequiredArgsConstructor
 public class CategoryMysqlRepository implements CategoryRepository {
 
@@ -29,6 +34,11 @@ public class CategoryMysqlRepository implements CategoryRepository {
 
     @Value("${category.findByName}")
     private String findByNameQuery;
+
+    @PostConstruct
+    public void init(){
+        log.info("Currently using: {}",this.getClass().getSimpleName());
+    }
 
     /**
      * Retrieves all category records from the database.

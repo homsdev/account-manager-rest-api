@@ -25,7 +25,7 @@ import static org.mockito.Mockito.atMostOnce;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("Test")
+@ActiveProfiles("test")
 public class AccountServiceTest {
     @MockBean
     private AccountRepository accountRepository;
