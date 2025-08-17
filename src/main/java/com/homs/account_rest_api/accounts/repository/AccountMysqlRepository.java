@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -29,6 +30,7 @@ import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
+@Profile({"test","prod"})
 public class AccountMysqlRepository implements AccountRepository {
 
     @Value("${account.findAll}")

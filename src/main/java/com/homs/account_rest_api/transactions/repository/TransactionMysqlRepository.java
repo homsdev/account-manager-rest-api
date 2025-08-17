@@ -6,6 +6,7 @@ import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -17,9 +18,10 @@ import java.util.*;
 
 import static com.homs.account_rest_api.utils.TransactionDataValidation.isValid;
 
-@Repository
-@RequiredArgsConstructor
 @Slf4j
+@Repository
+@Profile({"test","prod"})
+@RequiredArgsConstructor
 public class TransactionMysqlRepository implements TransactionRepository {
 
     @Value("${transaction.save}")
