@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ActiveProfiles("test")
 public class AccountRowMapperTest {
 
     private ResultSet rs;

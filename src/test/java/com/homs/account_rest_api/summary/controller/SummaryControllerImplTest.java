@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
-@ActiveProfiles("Test")
+@ActiveProfiles("test")
 @Slf4j
 public class SummaryControllerImplTest {
 

@@ -4,6 +4,7 @@ import com.homs.account_rest_api.transactions.model.Transaction;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -13,6 +14,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 public class TransactionRowMapperTest {
 
     private TransactionRowMapper transactionMapper;

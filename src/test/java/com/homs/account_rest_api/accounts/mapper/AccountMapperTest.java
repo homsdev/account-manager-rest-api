@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("Test")
+@ActiveProfiles("test")
 public class AccountMapperTest extends TestCase {
 
     @Autowired

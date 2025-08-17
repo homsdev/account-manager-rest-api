@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("Test")
+@ActiveProfiles("test")
 public class AccountMysqlRepositoryTests {
 
     private final String validId = "de2a7490-4c00-492d-bc52-a0c7172eb4ed";

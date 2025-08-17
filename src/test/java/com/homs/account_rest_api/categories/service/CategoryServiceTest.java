@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("Test")
+@ActiveProfiles("test")
 public class CategoryServiceTest extends TestCase {
 
     @MockBean
