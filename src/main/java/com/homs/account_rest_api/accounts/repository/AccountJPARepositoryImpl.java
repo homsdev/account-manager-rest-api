@@ -37,6 +37,11 @@ public class AccountJPARepositoryImpl implements AccountRepository {
         );
     }
 
+    /**
+     * Use {@link EntityManager} to retrieve first 10 {@link Account}
+     *
+     * @return A list of first 10 {@link Account}
+     */
     @Override
     public List<Account> findAll() {
         return em.createQuery("SELECT a FROM Account a ORDER BY a.accountId", Account.class)
@@ -44,6 +49,13 @@ public class AccountJPARepositoryImpl implements AccountRepository {
                 .getResultList();
     }
 
+    /**
+     * Returns a list of {@link Account} object based on pageSize and pageNumber
+     *
+     * @param pageSize   Number of {@link Account} objects to return by page
+     * @param pageNumber Number of page to retrieve
+     * @return List of {@link Account}
+     */
     @Override
     public List<Account> findAll(Integer pageSize, Integer pageNumber) {
 
@@ -65,6 +77,12 @@ public class AccountJPARepositoryImpl implements AccountRepository {
         return Optional.ofNullable(em.find(Account.class, id));
     }
 
+    /**
+     * Persists a new {@link Account} in database
+     *
+     * @param account {@link Account} object to persist
+     * @return Created {@link Account}
+     */
     @Override
     @Transactional
     public Optional<Account> save(Account account) {
@@ -75,6 +93,12 @@ public class AccountJPARepositoryImpl implements AccountRepository {
         return Optional.of(account);
     }
 
+    /**
+     * Deletes the account that matches given id
+     *
+     * @param id String unique identifier of the {@link Account}
+     * @return <b>1</b> if account is removed <b>0</b> if account does not exist
+     */
     @Override
     @Transactional
     public Integer deleteById(String id) {
@@ -88,9 +112,14 @@ public class AccountJPARepositoryImpl implements AccountRepository {
         }).orElse(0);
     }
 
+    /**
+     * Searches and locks an instance of {@link Account} to update balance
+     * @param account {@link Account} object to modify balance
+     * @return {@link Account} managed instance to modify balance
+     */
     @Override
     public Optional<Account> updateBalance(Account account) {
-        if (account == null ) {
+        if (account == null) {
             throw new InvalidParametersException("Missing Id property");
         }
 
