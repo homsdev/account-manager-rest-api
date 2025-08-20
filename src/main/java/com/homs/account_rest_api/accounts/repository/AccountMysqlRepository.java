@@ -102,7 +102,7 @@ public class AccountMysqlRepository implements AccountRepository {
     @Override
     public Optional<Account> save(Account account) {
         Map<String, Object> params = new HashMap<>();
-        params.put(Params.ID.getName(), account.getAccountId());
+        params.put(Params.ID.getName(), UUID.randomUUID().toString());
         params.put(Params.ALIAS.getName(), account.getAlias());
         params.put(Params.BALANCE.getName(), account.getBalance());
 

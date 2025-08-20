@@ -49,7 +49,6 @@ public class AccountService {
      * @throws RuntimeException if account was not created
      */
     public Account saveAccount(Account newAccount) {
-        newAccount.setAccountId(UUID.randomUUID().toString());
         return accountRepository.save(newAccount)
                 .orElseThrow(() -> new ResourceNotCreatedException("Failed to create new account"));
     }
