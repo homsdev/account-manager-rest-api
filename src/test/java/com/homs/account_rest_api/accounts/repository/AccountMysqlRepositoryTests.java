@@ -2,16 +2,17 @@ package com.homs.account_rest_api.accounts.repository;
 
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.accounts.mapper.AccountRowMapper;
+import com.homs.account_rest_api.mocks.AccountMockFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 
 import java.math.BigDecimal;
@@ -21,177 +22,116 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@RunWith(MockitoJUnitRunner.class)
+@Slf4j
 @ActiveProfiles("test")
 public class AccountMysqlRepositoryTests {
 
-    private final String validId = "de2a7490-4c00-492d-bc52-a0c7172eb4ed";
-    private Account accountA;
-    private Account accountB;
-    private List<Account> expectedAccounts;
+    @Mock
+    NamedParameterJdbcTemplate jdbcTemplate;
 
-    @MockBean
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    @InjectMocks
+    AccountMysqlRepository accountRepository;
 
-    @Autowired
-    AccountRepository accountRepository;
+    AccountMockFactory mockFactory;
 
     @Before
-    public void setUp(){
-        accountA = Account.builder()
-                .accountId("de2a7490-4c00-492d-bc52-a0c7172eb4ed")
-                .alias("Dummy Account A")
-                .balance(BigDecimal.valueOf(10_000.00))
-                .build();
-        accountB = Account.builder()
-                .accountId("0b3d833e-f31d-48c8-bbfc-101b746eaae7")
-                .alias("Dummy Account B")
-                .balance(BigDecimal.valueOf(10_500.00))
-                .build();
-        Account accountC = Account.builder()
-                .accountId("0b3d833e-f31d-48c8-bbfc-101b746eedvb9")
-                .alias("Dummy Account C")
-                .balance(BigDecimal.valueOf(850.75))
-                .build();
-
-        expectedAccounts = Arrays.asList(accountA, accountB, accountC);
+    public void setUp() {
+        mockFactory = new AccountMockFactory();
     }
 
-    /**
-     * Test to verify findAll method, it should return a list of all available accounts
-     * if query method is successful
-     */
     @Test
-    public void shouldReturnAllAccounts() {
-        when(jdbcTemplate.query(anyString(), any(AccountRowMapper.class)))
+    public void findAllShouldReturnAllAccounts() {
+        List<Account> expectedAccounts = List.of(
+                mockFactory.mainAccount(),
+                mockFactory.checkingAccount()
+        );
+        when(jdbcTemplate.query(isNull(), any(AccountRowMapper.class)))
                 .thenReturn(expectedAccounts);
 
         List<Account> actualAccounts = accountRepository.findAll();
 
         assertNotNull(actualAccounts);
         assertEquals(expectedAccounts.size(), actualAccounts.size());
-        verify(jdbcTemplate).query(anyString(), any(AccountRowMapper.class));
     }
 
-    /**
-     * Test to verify that when a valid id is passed to findById method
-     * it should return a valid account
-     */
     @Test
-    public void shouldReturnAnAccountWhenIDisValid() {
-        //Mocks
-        List<Account> expectedResult = Collections.singletonList(accountA);
+    public void findByIdShouldReturnAnAccountIfExists() {
+        Account mainAccount = mockFactory.mainAccount();
+        when(jdbcTemplate.query(isNull(), anyMap(), any(AccountRowMapper.class)))
+                .thenReturn(Collections.singletonList(mainAccount));
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("accountId", validId);
-        //Prepare
-        when(jdbcTemplate.query(anyString(), eq(params), any(AccountRowMapper.class)))
-                .thenReturn(expectedResult);
+        Optional<Account> result = accountRepository.findById(mainAccount.getAccountId());
 
-        //Act
-        Optional<Account> actualResult = accountRepository.findById(validId);
+        assertTrue(result.isPresent());
+        assertEquals(mainAccount.getAccountId(), result.get().getAccountId());
 
-        //Assertions
-        assertTrue("Returns a valid account", actualResult.isPresent());
-        assertEquals("Returned account has the correct alias", validId, actualResult.get().getAccountId());
-
-        verify(jdbcTemplate, atMostOnce()).query(anyString(), eq(params), any(AccountRowMapper.class));
+        verify(jdbcTemplate, atMostOnce()).query(anyString(), anyMap(), any(AccountRowMapper.class));
     }
 
-    /**
-     * Test to verify that when an invalid id is passed to findById method
-     * it will return an empty Optional
-     */
     @Test
-    public void shouldReturnAnEmptyOptionalWhenIdIsInvalid() {
-        List<Account> expectedResult = Collections.emptyList();
+    public void findByIdShouldReturnAnEmptyOptionalWhenIdIsInvalid() {
+        when(jdbcTemplate.query(isNull(), anyMap(), any(AccountRowMapper.class)))
+                .thenReturn(Collections.emptyList());
 
-        Map<String, Object> params = new HashMap<>();
-        String invalidId = "ssdff-sssss--ssss";
-        params.put("accountId", invalidId);
+        Optional<Account> result = accountRepository.findById("invalidId");
 
-        when(jdbcTemplate.query(anyString(), eq(params), any(AccountRowMapper.class)))
-                .thenReturn(expectedResult);
-
-        Optional<Account> actualResult = accountRepository.findById(invalidId);
-
-        assertTrue("Result is empty", actualResult.isEmpty());
+        assertTrue(result.isEmpty());
         verify(jdbcTemplate, times(1))
-                .query(anyString(), eq(params), any(AccountRowMapper.class));
+                .query(isNull(), anyMap(), any(AccountRowMapper.class));
     }
 
-    /**
-     * Test to verify that when a new account is saved it should return the newly created account
-     */
     @Test
-    public void shouldReturnTheSameAccountWhenSaveIsSuccessful() {
-        Optional<Account> expectedResult = Optional.of(accountB);
-        when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(1);
+    public void saveShouldReturnTheSameAccountWhenSaveIsSuccessful() {
+        Account checkingAccount = mockFactory.checkingAccount();
+        when(jdbcTemplate.update(isNull(), anyMap())).thenReturn(1);
 
-        Optional<Account> actualResult = accountRepository.save(accountB);
+        Optional<Account> result = accountRepository.save(checkingAccount);
 
-        assertTrue("Account is saved", actualResult.isPresent());
-        assertEquals("Account is saved correctly", expectedResult.get(), actualResult.get());
-        verify(jdbcTemplate, atMostOnce()).update(anyString(), anyMap());
+        assertTrue(result.isPresent());
+        assertSame(checkingAccount, result.get());
+        verify(jdbcTemplate, atMostOnce()).update(isNull(), anyMap());
     }
 
-    /**
-     * Test to verify that when save method fails it should return an empty optional
-     */
     @Test
-    public void shouldReturnEmptyOptionalIfSaveFails() {
-        when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(0);
+    public void saveShouldReturnEmptyOptionalIfSaveFails() {
+        when(jdbcTemplate.update(isNull(), anyMap())).thenReturn(0);
 
-        Optional<Account> actualResult = accountRepository.save(accountB);
+        Optional<Account> result = accountRepository.save(mockFactory.mainAccount());
 
-        assertTrue(actualResult.isEmpty());
-        verify(jdbcTemplate, atMostOnce()).update(anyString(), anyMap());
+        assertTrue(result.isEmpty());
+        verify(jdbcTemplate, atMostOnce()).update(isNull(), anyMap());
     }
 
-    /**
-     * Test to verify that when delete method is called it should return the number of affected rows
-     */
     @Test
-    public void shouldReturnMoreThan0RowsAffectedWhenDeleting() {
-        Integer expectedResult = 1;
-        when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(1);
+    public void deleteByIdShouldReturnMoreThan0RowsAffectedWhenDeleting() {
+        when(jdbcTemplate.update(isNull(), anyMap())).thenReturn(1);
 
-        Integer actualResult = accountRepository.deleteById(validId);
+        Integer result = accountRepository.deleteById("validId");
 
-        assertEquals(expectedResult, actualResult);
-        verify(jdbcTemplate, atMostOnce()).update(anyString(), anyMap());
+        assertEquals(1, result.intValue());
+        verify(jdbcTemplate, atMostOnce()).update(isNull(), anyMap());
     }
 
-    /**
-     * Test to verify that when updated operation is successful it should
-     * return the updated account
-     */
     @Test
-    public void shouldReturnUpdatedAccountWhenUpdatedIsSuccessful() {
-        Integer expectedResult = 1;
-
-        when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(expectedResult);
+    public void updateBalanceShouldReturnUpdatedAccountWhenUpdatedIsSuccessful() {
+        Account account = mockFactory.mainAccount();
+        when(jdbcTemplate.update(isNull(), anyMap())).thenReturn(1);
 
         BigDecimal updatedBalance = BigDecimal.valueOf(50_000.00);
-        accountB.setBalance(updatedBalance);
-        Optional<Account> actualResult = accountRepository.updateBalance(accountB);
+        account.setBalance(updatedBalance);
 
-        assertTrue(actualResult.isPresent());
-        assertEquals(updatedBalance, actualResult.get().getBalance());
+        Optional<Account> result = accountRepository.updateBalance(account);
 
-        verify(jdbcTemplate, atMostOnce()).update(anyString(), anyMap());
+        assertTrue(result.isPresent());
+        verify(jdbcTemplate, atMostOnce()).update(isNull(), anyMap());
     }
 
-    /**
-     * Test to verify that when update operation fails
-     * it should return an empty optional
-     */
     @Test
-    public void shouldReturnEmptyOptionalWhenUpdateFails() {
-        when(jdbcTemplate.update(anyString(), anyMap())).thenReturn(0);
+    public void updateBalanceShouldReturnEmptyOptionalWhenUpdateFails() {
+        when(jdbcTemplate.update(isNull(), anyMap())).thenReturn(0);
 
-        Optional<Account> actualResult = accountRepository.updateBalance(accountB);
+        Optional<Account> actualResult = accountRepository.updateBalance(mockFactory.mainAccount());
 
         assertTrue(actualResult.isEmpty());
 

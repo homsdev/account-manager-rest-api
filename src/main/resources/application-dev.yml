@@ -26,5 +26,6 @@ logging:
     #org.hibernate.SQL: DEBUG
     #org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.hibernate.orm.jdbc.bind: TRACE  # For Hibernate 6+
-    #org.hibernate.orm.jdbc.bind: TRACE # Hibernate 6+ Spring boot 3+ show parameter values
     #org.hibernate.type: TRACE         # Logs the parameter values
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: DEBUG
