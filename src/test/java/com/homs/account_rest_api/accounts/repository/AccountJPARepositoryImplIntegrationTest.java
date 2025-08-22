@@ -22,7 +22,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
 @SpringBootTest(classes = AccountRestApiApplication.class)
 @ActiveProfiles("dev")
 @Slf4j

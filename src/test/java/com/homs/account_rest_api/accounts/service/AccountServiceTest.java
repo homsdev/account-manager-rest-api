@@ -36,7 +36,9 @@ public class AccountServiceTest {
 
     @Test
     public void findAllShouldReturnAListOfAccounts() {
-        List<Account> expectedResult = Arrays.asList(new Account(), new Account());
+        Account  a1 = Account.builder().build();
+        Account  a2 = Account.builder().build();
+        List<Account> expectedResult = Arrays.asList(a1,a2);
 
         when(accountRepository.findAll()).thenReturn(expectedResult);
 

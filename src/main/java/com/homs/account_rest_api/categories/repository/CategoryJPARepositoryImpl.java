@@ -1,10 +1,13 @@
 package com.homs.account_rest_api.categories.repository;
 
 import com.homs.account_rest_api.categories.model.Category;
+import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.utils.TableValidation;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
+import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -27,8 +30,8 @@ public class CategoryJPARepositoryImpl implements CategoryRepository {
     private final EntityManager em;
 
     @PostConstruct
-    public void init(){
-        log.info("Currently using: {}",this.getClass().getSimpleName());
+    public void init() {
+        log.info("Currently using: {}", this.getClass().getSimpleName());
         TableValidation.validateTable(
                 this.getClass().getSimpleName(),
                 "cli_transaction",
@@ -38,16 +41,24 @@ public class CategoryJPARepositoryImpl implements CategoryRepository {
 
     @Override
     public List<Category> getAllCategories() {
-        return Collections.emptyList();
+        return em.createQuery("SELECT c FROM Category c", Category.class)
+                .getResultList();
     }
 
     @Override
     public Optional<Category> getCategory(String id) {
-        return Optional.empty();
+        if (id == null || id.isBlank()) {
+            throw new InvalidParametersException("Invalid category data");
+        }
+        return Optional.ofNullable(em.find(Category.class, id));
     }
 
     @Override
+    @Transactional
     public Optional<Category> getByName(String name) {
-        return Optional.empty();
+        TypedQuery<Category> query = em.createQuery(
+                "SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name)", Category.class);
+        query.setParameter("name", name);
+        return query.getResultStream().findFirst();
     }
 }
