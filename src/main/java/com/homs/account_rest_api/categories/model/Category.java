@@ -1,7 +1,10 @@
 package com.homs.account_rest_api.categories.model;
 
+import com.homs.account_rest_api.transactions.model.Transaction;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "cli_category")
@@ -10,7 +13,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "transactions")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Category {
     @Id
@@ -21,4 +24,7 @@ public class Category {
 
     @Column(name = "category_name", nullable = false)
     private String name;
+
+    @OneToMany(mappedBy = "category")
+    private List<Transaction> transactions;
 }

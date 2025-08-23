@@ -40,11 +40,21 @@ public class TransactionJPARepositoryImpl implements TransactionRepository {
 
     @Override
     public Optional<Transaction> saveTransaction(Transaction transaction) {
-        return Optional.empty();
+        em.persist(transaction);
+        return Optional.of(transaction);
     }
 
     @Override
     public List<Transaction> getAllTransactionsByMonth(String accountId, Month month, Year year) {
-        return Collections.emptyList();
+        String query = "SELECT t FROM Transaction t " +
+                "WHERE t.account.accountId = :accountId " +
+                "AND EXTRACT(YEAR FROM t.date) = :year " +
+                "AND EXTRACT(MONTH FROM t.date) = :month " +
+                "ORDER BY t.date DESC";
+        return em.createQuery(query, Transaction.class)
+                .setParameter("accountId", accountId)
+                .setParameter("month",month.getValue())
+                .setParameter("year",year.getValue())
+                .getResultList();
     }
 }

@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@ToString(exclude = "account")
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Transaction {
 
@@ -43,6 +43,7 @@ public class Transaction {
     @JoinColumn(name = "transaction_account")
     private Account account;
 
-    @Transient
+    @ManyToOne
+    @JoinColumn(name = "transaction_category")
     private Category category;
 }

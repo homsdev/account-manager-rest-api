@@ -4,6 +4,11 @@ CREATE TABLE IF NOT EXISTS cli_account(
     alias VARCHAR(60) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS cli_category(
+    category_id VARCHAR(60) NOT NULL PRIMARY KEY,
+    category_name VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS cli_transaction(
     transaction_id VARCHAR(60) NOT NULL PRIMARY KEY,
     transaction_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (transaction_amount > 0),
@@ -11,11 +16,9 @@ CREATE TABLE IF NOT EXISTS cli_transaction(
     transaction_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     transaction_alias VARCHAR(60),
     transaction_account VARCHAR(60) NOT NULL,
+    transaction_category VARCHAR(60) NOT NULL,
     FOREIGN KEY (transaction_account) REFERENCES cli_account(account_id)
+    ON UPDATE CASCADE,
+    FOREIGN KEY (transaction_category) REFERENCES cli_category(category_id)
     ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS cli_category(
-    category_id VARCHAR(60) NOT NULL PRIMARY KEY,
-    category_name VARCHAR(255) NOT NULL
 );

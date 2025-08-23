@@ -28,14 +28,14 @@ public class CategoryJPARepositoryImplIntegrationTest {
     public void getAllCategoriesShouldReturnAllCategories() {
         List<Category> result = categoryRepository.getAllCategories();
         log.info(result.toString());
-        assertEquals(3, result.size());
+        assertEquals(5, result.size());
     }
 
     @Test
     public void getCategoryShouldReturnReqCategory() {
         Optional<Category> result = categoryRepository.getCategory("cat-salary");
         assertTrue(result.isPresent());
-        assertEquals("salary",result.get().getName());
+        assertEquals("Salary",result.get().getName());
     }
 
     @Test
