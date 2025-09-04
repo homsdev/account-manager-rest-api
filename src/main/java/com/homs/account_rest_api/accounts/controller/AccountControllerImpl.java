@@ -1,15 +1,11 @@
 package com.homs.account_rest_api.accounts.controller;
 
 
-import com.homs.account_rest_api.accounts.dto.UpdateBalanceDTO;
-import com.homs.account_rest_api.accounts.mapper.AccountMapper;
-import com.homs.account_rest_api.accounts.model.Account;
+import com.homs.account_rest_api.accounts.dto.AccountDTO;
 import com.homs.account_rest_api.accounts.service.AccountService;
 
 import com.homs.account_rest_api.dto.ApiResponseDTO;
-import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,22 +22,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
-@Validated
 @Slf4j
 public class AccountControllerImpl implements AccountController {
 
     private final AccountService accountService;
-    private final AccountMapper accountMapper;
 
-    private void expandSelfResponse(ApiResponseDTO<Account> responseDTO, String id) {
+    private void expandSelfResponse(ApiResponseDTO<AccountDTO> responseDTO, String id) {
 
         responseDTO.add(linkTo(
                 methodOn(AccountControllerImpl.class).getAccountById(id)
         ).withSelfRel());
-
-        responseDTO.add(linkTo(
-                methodOn(AccountControllerImpl.class).updateAccountBalance(id, null)
-        ).withRel("update").withType("PATCH"));
 
         responseDTO.add(linkTo(
                 methodOn(AccountControllerImpl.class).deleteAccount(id)
@@ -53,17 +43,18 @@ public class AccountControllerImpl implements AccountController {
 
     }
 
-    @GetMapping
+    @GetMapping(value = {"", "/"})
     @Override
-    public ResponseEntity<ApiResponseDTO<List<Account>>> getAllAccounts() {
-        List<Account> all = accountService.findAll();
+    public ResponseEntity<ApiResponseDTO<List<AccountDTO>>> getAllAccounts() {
+        log.info("Executing getAllAccounts Controller");
+        List<AccountDTO> all = accountService.findAll();
 
         if (all.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
-        ApiResponseDTO<List<Account>> response =
-                ApiResponseDTO.<List<Account>>builder()
+        ApiResponseDTO<List<AccountDTO>> response =
+                ApiResponseDTO.<List<AccountDTO>>builder()
                         .data(all)
                         .timestamp(Instant.now())
                         .build();
@@ -78,32 +69,31 @@ public class AccountControllerImpl implements AccountController {
 
     @GetMapping("/{id}")
     @Override
-    public ResponseEntity<ApiResponseDTO<Account>> getAccountById(@PathVariable("id") String id) {
+    public ResponseEntity<ApiResponseDTO<AccountDTO>> getAccountById(@PathVariable("id") String id) {
         log.info("Executing find by id for: {}", id);
         if (id.isBlank()) {
             throw new ResourceNotFoundException(id);
         }
-        Account account = accountService.findById(id);
-        ApiResponseDTO<Account> response = ApiResponseDTO.<Account>builder()
+        AccountDTO account = accountService.findById(id);
+        ApiResponseDTO<AccountDTO> response = ApiResponseDTO.<AccountDTO>builder()
                 .data(account)
                 .build();
 
-        expandSelfResponse(response, account.getAccountId());
+        expandSelfResponse(response, account.getId());
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
     @Override
-    public ResponseEntity<ApiResponseDTO<Account>> createNewAccount(@Valid @RequestBody CreateAccountDto dto) {
+    public ResponseEntity<ApiResponseDTO<AccountDTO>> createNewAccount(@RequestBody AccountDTO dto) {
         log.info("Executing createNewAccount");
-        Account newAccount = accountMapper.toEntity(dto);
-        Account createdAccount = accountService.saveAccount(newAccount);
-        ApiResponseDTO<Account> response = ApiResponseDTO.<Account>builder()
+        AccountDTO createdAccount = accountService.saveAccount(dto);
+        ApiResponseDTO<AccountDTO> response = ApiResponseDTO.<AccountDTO>builder()
                 .data(createdAccount)
                 .build();
 
-        expandSelfResponse(response, createdAccount.getAccountId());
+        expandSelfResponse(response, createdAccount.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(response);
@@ -111,22 +101,14 @@ public class AccountControllerImpl implements AccountController {
 
     @PatchMapping("/{id}")
     @Override
-    public ResponseEntity<ApiResponseDTO<Account>> updateAccountBalance
-            (@PathVariable String id, @Valid @RequestBody UpdateBalanceDTO dto) {
-        if (id.isBlank()) {
-            throw new ResourceNotFoundException(id);
-        }
+    public ResponseEntity<ApiResponseDTO<AccountDTO>> updateAccountBalance
+            (@PathVariable String id, @RequestBody AccountDTO dto) {
 
-        Account accountToUpdate = accountMapper.toEntity(dto);
-        accountToUpdate.setAccountId(id);
+        AccountDTO updatedAccountDTO = accountService.updateBalance(id, dto);
 
-        Account account = accountService.updateBalance(accountToUpdate);
-
-        ApiResponseDTO<Account> response = ApiResponseDTO.<Account>builder()
-                .data(account)
+        ApiResponseDTO<AccountDTO> response = ApiResponseDTO.<AccountDTO>builder()
+                .data(updatedAccountDTO)
                 .build();
-
-        expandSelfResponse(response, account.getAccountId());
 
         return ResponseEntity.ok(response);
     }
@@ -134,12 +116,7 @@ public class AccountControllerImpl implements AccountController {
     @DeleteMapping("/{id}")
     @Override
     public ResponseEntity<Void> deleteAccount(@PathVariable String id) {
-        if (id.isBlank()) {
-            throw new ResourceNotFoundException(id);
-        }
-
         accountService.deleteById(id);
-
         return ResponseEntity.noContent().build();
     }
 }

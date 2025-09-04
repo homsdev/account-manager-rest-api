@@ -12,12 +12,20 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: true
     hibernate:
-      format_sql: true #Formats SQL queries (Warning do not enable in prod )
       ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true #Formats SQL queries (Warning do not enable in prod )
   sql:
     init:
       mode: always
       schema-locations: classpath:db/schema.sql
       data-locations: classpath:db/data.sql
 logging:
-  org.hibernate.orm.jdbc.bind: TRACE # Hibernate 6+ Spring boot 3+
+  level:
+    #org.hibernate.SQL: DEBUG
+    #org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE  # For Hibernate 6+
+    #org.hibernate.type: TRACE         # Logs the parameter values
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: DEBUG

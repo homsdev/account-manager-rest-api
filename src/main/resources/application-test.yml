@@ -1,12 +1,12 @@
 spring:
+  application:
+    name: account-rest-api
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-    initialization-mode: always
-    platform: h2
-
+    url: jdbc:mariadb://localhost:3306/account_manager_db
+    username: admin
+    password: admin
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 1
   jpa:
-    hibernate:
-      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.MariaDBDialect

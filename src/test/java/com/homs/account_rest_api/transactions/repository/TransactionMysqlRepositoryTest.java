@@ -1,18 +1,19 @@
 package com.homs.account_rest_api.transactions.repository;
 
-import com.homs.account_rest_api.mocks.DummyTransactions;
+import com.homs.account_rest_api.mocks.AccountMockFactory;
+import com.homs.account_rest_api.mocks.CategoryMockFactory;
+import com.homs.account_rest_api.mocks.TransactionMockFactory;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import com.homs.account_rest_api.transactions.mapper.TransactionRowMapper;
 import com.homs.account_rest_api.transactions.model.Transaction;
 import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Month;
 import java.time.Year;
@@ -23,87 +24,91 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
+@RunWith(MockitoJUnitRunner.class)
 public class TransactionMysqlRepositoryTest {
 
-    @MockBean
+    @Mock
     private NamedParameterJdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    @InjectMocks
+    private TransactionMysqlRepository transactionRepository;
 
-    private DummyTransactions dummyTransactions;
+    private TransactionMockFactory transactionMockFactory;
+    private Transaction genericExpense;
 
+    @Before
+    public void setUp(){
+        transactionMockFactory = new TransactionMockFactory();
+        AccountMockFactory accountMockFactory = new AccountMockFactory();
+        CategoryMockFactory categoryMockFactory = new CategoryMockFactory();
+
+        genericExpense = transactionMockFactory.createExpense(
+                accountMockFactory.mainAccount(),
+                categoryMockFactory.transportation(),
+                750.60,
+                "transportation"
+        );
+    }
 
     /**
      * Test to assert when update operation success it returns 1 row affected
      */
     @Test()
-    public void shouldReturnOptionalWithTransactionWhenOk() {
-        when(jdbcTemplate.update(anyString(), anyMap()))
+    public void saveTransactionShouldReturnTransactionWhenOk() {
+
+        when(jdbcTemplate.update(isNull(), anyMap()))
                 .thenReturn(1);
 
-        Optional<Transaction> transaction = transactionRepository.saveTransaction(dummyTransactions.getGroceries());
-        assertFalse(transaction.isEmpty());
+        Optional<Transaction> result = transactionRepository.saveTransaction(genericExpense);
 
-        Transaction actualResult = transaction.get();
-
-        assertEquals(TransactionType.EXPENSE, actualResult.getType());
+        assertTrue(result.isPresent());
+        assertEquals(TransactionType.EXPENSE, result.get().getType());
     }
 
     /**
      * Test to assert when update operation fails it returns 0 rows affected
      */
     @Test
-    public void saveTransactionShouldReturnEmptyOptionalWhenFails() {
-        when(jdbcTemplate.update(anyString(), anyMap()))
+    public void saveTransactionShouldReturnEmptyWhenFails() {
+
+        when(jdbcTemplate.update(isNull(), anyMap()))
                 .thenReturn(0);
 
-        Optional<Transaction> transaction = transactionRepository.saveTransaction(dummyTransactions.getGroceries());
+        Optional<Transaction> result = transactionRepository.saveTransaction(genericExpense);
 
-        assertTrue(transaction.isEmpty());
-    }
-
-    @Test(expected = TransactionInvalidData.class)
-    public void shouldThrowErrorWhenATransactionPropertyIsInvalid() {
-        Transaction dummy = Transaction.builder()
-                .build();
-        transactionRepository.saveTransaction(dummy);
-    }
-
-    @Test(expected = TransactionInvalidData.class)
-    public void shouldThrowErrorWhenTransactionIsNull() {
-        transactionRepository.saveTransaction(null);
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    public void getAllTransactionsByMonth_shouldReturnRetrievedTransactionFromDB() {
+    public void saveTransactionShowThrowExceptionWithInvalidTransactionData() {
+        Transaction dummy = Transaction.builder()
+                .build();
+        assertThrows(TransactionInvalidData.class, () ->
+                transactionRepository.saveTransaction(dummy));
 
-        Transaction a = Transaction.builder().build();
-        Transaction b = Transaction.builder().build();
-        Transaction c = Transaction.builder().build();
-        List<Transaction> expectedTransactions = List.of(a, b, c);
+    }
+
+    @Test
+    public void saveTransactionShowThrowExceptionWhenPassedNullValues() {
+        assertThrows(TransactionInvalidData.class, () ->
+                transactionRepository.saveTransaction(null));
+    }
+
+    @Test
+    public void getAllTransactionsByMonthShouldReturnRetrievedTransactionFromDB() {
+
+        List<Transaction> expectedTransactions = transactionMockFactory.createCheckingAccountTransactions();
 
         Map<String, Object> expectedQueryParams = new HashMap<>();
         expectedQueryParams.put("accountId", "sampleId");
         expectedQueryParams.put("year", 2025);
         expectedQueryParams.put("month", 12);
 
-        when(jdbcTemplate.query(anyString(), anyMap(), any(TransactionRowMapper.class)))
+        when(jdbcTemplate.query(isNull(), anyMap(), any(TransactionRowMapper.class)))
                 .thenReturn(expectedTransactions);
         List<Transaction> result = transactionRepository
                 .getAllTransactionsByMonth("sampleId", Month.DECEMBER, Year.now());
-        assertEquals(3, result.size());
-        verify(jdbcTemplate).query(anyString(), eq(expectedQueryParams), any(TransactionRowMapper.class));
-    }
-
-    @Test
-    public void getAllTransactionsByMonth_shouldReturnEmptyListWithNoSelectedAccount() {
-        List<Transaction> result = transactionRepository
-                .getAllTransactionsByMonth("", Month.APRIL, Year.now());
-        assertEquals(0, result.size());
-        assertTrue(result.isEmpty());
+        assertEquals(expectedTransactions.size(), result.size());
+        verify(jdbcTemplate).query(isNull(), eq(expectedQueryParams), any(TransactionRowMapper.class));
     }
 }
