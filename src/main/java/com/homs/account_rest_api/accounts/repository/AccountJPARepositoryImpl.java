@@ -2,6 +2,7 @@ package com.homs.account_rest_api.accounts.repository;
 
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.exception.InvalidParametersException;
+import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.utils.TableValidation;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +23,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Repository
-@Profile({"dev"})
+@Profile({"dev","test"})
 @RequiredArgsConstructor
 public class AccountJPARepositoryImpl implements AccountRepository {
 
@@ -30,11 +32,7 @@ public class AccountJPARepositoryImpl implements AccountRepository {
     @PostConstruct
     public void init() {
         log.info("Currently using: {}", this.getClass().getSimpleName());
-        TableValidation.validateTable(
-                this.getClass().getSimpleName(),
-                "cli_account",
-                this.em
-        );
+        TableValidation.tableExists(em,"Account");
     }
 
     /**
@@ -44,6 +42,7 @@ public class AccountJPARepositoryImpl implements AccountRepository {
      */
     @Override
     public List<Account> findAll() {
+        log.info("Executing findAll to retrieve first 10 Accounts");
         return em.createQuery("SELECT a FROM Account a ORDER BY a.accountId", Account.class)
                 .setMaxResults(10)
                 .getResultList();
@@ -58,11 +57,7 @@ public class AccountJPARepositoryImpl implements AccountRepository {
      */
     @Override
     public List<Account> findAll(Integer pageSize, Integer pageNumber) {
-
-        if (pageSize == null || pageNumber == null || pageSize <= 0 || pageNumber <= 0) {
-            throw new InvalidParametersException("Page size and page Number must be positive numbers");
-        }
-
+        log.info("Executing findAll with pageSize: {} and pageNumber: {}", pageSize, pageNumber);
         return em.createQuery("SELECT a FROM Account a ORDER BY a.accountId", Account.class)
                 .setFirstResult((pageNumber - 1) * pageSize)
                 .setMaxResults(pageSize)
@@ -71,9 +66,7 @@ public class AccountJPARepositoryImpl implements AccountRepository {
 
     @Override
     public Optional<Account> findById(String id) {
-        if (id == null || id.isBlank()) {
-            throw new InvalidParametersException("Missing Id property");
-        }
+        log.info("Executing findById");
         return Optional.ofNullable(em.find(Account.class, id));
     }
 
@@ -86,9 +79,7 @@ public class AccountJPARepositoryImpl implements AccountRepository {
     @Override
     @Transactional
     public Optional<Account> save(Account account) {
-        if (account == null) {
-            throw new InvalidParametersException("Missing account information");
-        }
+        log.info("Persisting new record");
         em.persist(account);
         return Optional.of(account);
     }
@@ -102,10 +93,7 @@ public class AccountJPARepositoryImpl implements AccountRepository {
     @Override
     @Transactional
     public Integer deleteById(String id) {
-        if (id == null || id.isBlank()) {
-            throw new InvalidParametersException("Missing Id property");
-        }
-
+        log.info("Executing delete method");
         return findById(id).map(account -> {
             em.remove(account);
             return 1;
@@ -114,17 +102,41 @@ public class AccountJPARepositoryImpl implements AccountRepository {
 
     /**
      * Searches and locks an instance of {@link Account} to update balance
+     *
      * @param account {@link Account} object to modify balance
      * @return {@link Account} managed instance to modify balance
      */
     @Override
+    @Transactional
     public Optional<Account> updateBalance(Account account) {
-        if (account == null) {
-            throw new InvalidParametersException("Missing Id property");
+        log.info("Executing repository balance update");
+
+        Account accountToUpdate = em.find(Account.class, account.getAccountId(),
+                LockModeType.PESSIMISTIC_WRITE);
+
+        if (accountToUpdate == null) {
+            return Optional.empty();
         }
 
-        return Optional.ofNullable(
-                em.find(Account.class, account.getAccountId(), LockModeType.PESSIMISTIC_WRITE)
-        );
+        log.info("Prev balance: {}, new balance: {}", accountToUpdate.getBalance(), account.getBalance());
+
+        accountToUpdate.setBalance(account.getBalance());
+
+        return Optional.of(accountToUpdate);
+    }
+
+    @Transactional
+    public Optional<Account> updateBalance(String accountId, BigDecimal newBalance) {
+        log.info("Executing repository balance update");
+        Account accountToUpdate = em.find(Account.class, accountId, LockModeType.PESSIMISTIC_WRITE);
+        if (accountToUpdate == null) {
+            log.warn("Invalid account");
+            return Optional.empty();
+        }
+        log.info("Prev balance: {}, new balance: {}", accountToUpdate.getBalance(), newBalance);
+
+        accountToUpdate.setBalance(newBalance);
+
+        return Optional.of(accountToUpdate);
     }
 }

@@ -31,11 +31,7 @@ public class TransactionJPARepositoryImpl implements TransactionRepository {
     @PostConstruct
     public void init() {
         log.info("Currently using: {}", this.getClass().getSimpleName());
-        TableValidation.validateTable(
-                this.getClass().getSimpleName(),
-                "cli_transaction",
-                this.em
-        );
+        TableValidation.tableExists(em,"Transaction");
     }
 
     @Override

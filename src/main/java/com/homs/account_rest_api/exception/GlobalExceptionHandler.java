@@ -18,11 +18,18 @@ import java.util.List;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles custom {@link InvalidParametersException} it occurs when a service is called with incorrect
+     * or missing params
+     *
+     * @param ex
+     * @return
+     */
     @ExceptionHandler(value = InvalidParametersException.class)
     public ResponseEntity<ApiResponseDTO<Object>> handleInvalidParametersException(InvalidParametersException ex) {
-        log.info("Executing handleInvalidParametersException: {}", ex.getMessage());
+        log.warn("Executing handleInvalidParametersException: {}", ex.getErrorMessages());
         ApiResponseDTO<Object> errorResponse = ApiResponseDTO.builder()
-                .message(Collections.singletonList(ex.getMessage()))
+                .message(ex.getErrorMessages())
                 .timestamp(Instant.now())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);

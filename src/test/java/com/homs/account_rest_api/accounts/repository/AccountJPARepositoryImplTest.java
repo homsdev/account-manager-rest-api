@@ -1,7 +1,6 @@
 package com.homs.account_rest_api.accounts.repository;
 
 import com.homs.account_rest_api.accounts.model.Account;
-import com.homs.account_rest_api.exception.InvalidParametersException;
 import com.homs.account_rest_api.mocks.AccountMockFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -14,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,13 +60,6 @@ public class AccountJPARepositoryImplTest {
     }
 
     @Test
-    public void findAllShouldThrowExceptionWithInvalidParameters() {
-        assertThrows(InvalidParametersException.class, () ->
-                accountRepository.findAll(-2, -10));
-        verifyNoInteractions(em);
-    }
-
-    @Test
     public void findAllWithoutParamsShouldReturnUpTo10Results() {
         when(em.createQuery(anyString(), eq(Account.class)))
                 .thenReturn(query);
@@ -91,13 +84,6 @@ public class AccountJPARepositoryImplTest {
     }
 
     @Test
-    public void findByIdShouldThrowExceptionWithInvalidParameters() {
-        assertThrows(InvalidParametersException.class, () ->
-                accountRepository.findById(" "));
-        verifyNoInteractions(em);
-    }
-
-    @Test
     public void saveShouldCreateANewAccount() {
         Account checking = mockFactory.checkingAccount();
 
@@ -106,14 +92,6 @@ public class AccountJPARepositoryImplTest {
         verify(em).persist(checking);
         assertTrue(result.isPresent());
         assertSame(checking, result.get());
-    }
-
-    @Test
-    public void saveShouldThrowExceptionWithInvalidParameters() {
-        assertThrows(InvalidParametersException.class, () ->
-                accountRepository.save(null));
-
-        verifyNoInteractions(em);
     }
 
     @Test
@@ -142,14 +120,6 @@ public class AccountJPARepositoryImplTest {
     }
 
     @Test
-    public void deleteByIdShouldThrowExceptionWhenPassedInvalidParams() {
-        assertThrows(InvalidParametersException.class, () ->
-                accountRepository.deleteById(" "));
-
-        verifyNoInteractions(em);
-    }
-
-    @Test
     public void updateBalanceShouldReturnEntityToModify() {
         Account mainAccount = mockFactory.mainAccount();
 
@@ -165,7 +135,7 @@ public class AccountJPARepositoryImplTest {
 
     @Test
     public void updateBalanceShouldReturnEmptyOptionalWhenAccountDoesNotExist() {
-        when(em.find(eq(Account.class),anyString(),any(LockModeType.class)))
+        when(em.find(eq(Account.class), anyString(), any(LockModeType.class)))
                 .thenReturn(null);
         Optional<Account> result = accountRepository
                 .updateBalance(mockFactory.accountWithoutExpenses());
@@ -177,11 +147,27 @@ public class AccountJPARepositoryImplTest {
     }
 
     @Test
-    public void updateBalanceShouldThrowExceptionWhenMissingAccount() {
+    public void updateBalanceShouldUpdateOnlyBalance() {
+        Account mainAccount = mockFactory.mainAccount();
+        BigDecimal newBalance = BigDecimal.valueOf(15_000);
+        when(em.find(eq(Account.class), anyString(), any(LockModeType.class)))
+                .thenReturn(mainAccount);
 
-        assertThrows(InvalidParametersException.class,()->
-                accountRepository.updateBalance(null));
+        Optional<Account> result = accountRepository
+                .updateBalance("acc-main", newBalance);
 
-        verifyNoInteractions(em);
+        assertTrue(result.isPresent());
+        assertEquals(newBalance, result.get().getBalance());
+    }
+
+    @Test
+    public void updateBalanceShouldReturnEmptyWhenNoAccountMatch() {
+        when(em.find(eq(Account.class), anyString(), any(LockModeType.class)))
+                .thenReturn(null);
+
+        Optional<Account> result = accountRepository
+                .updateBalance("acc-main", BigDecimal.valueOf(15_000));
+
+        assertTrue(result.isEmpty());
     }
 }

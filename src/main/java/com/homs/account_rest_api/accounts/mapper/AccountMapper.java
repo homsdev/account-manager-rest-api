@@ -1,27 +1,34 @@
 package com.homs.account_rest_api.accounts.mapper;
 
-import com.homs.account_rest_api.accounts.dto.CreateAccountDto;
-import com.homs.account_rest_api.accounts.dto.UpdateBalanceDTO;
+import com.homs.account_rest_api.accounts.dto.AccountDTO;
 import com.homs.account_rest_api.accounts.model.Account;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-@SuppressWarnings("unused")
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface AccountMapper {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class AccountMapper {
 
-    @Mapping(source = "balance",target = "accountBalance")
-    @Mapping(source = "alias",target = "accountAlias")
-    CreateAccountDto toDto(Account account);
+    public static AccountDTO toDTO(Account account) {
+        if (account == null) {
+            return null;
+        }
 
-    @Mapping(target = "accountId", ignore = true)
-    @Mapping(source = "accountAlias",target = "alias")
-    @Mapping(source = "accountBalance",target = "balance")
-    Account toEntity(CreateAccountDto accountDto);
+        return AccountDTO.builder()
+                .id(account.getAccountId())
+                .alias(account.getAlias())
+                .balance(account.getBalance())
+                .build();
+    }
 
-    @Mapping(target = "alias", ignore = true)
-    @Mapping(target = "accountId", ignore = true)
-    @Mapping(target = "balance",source = "updatedBalance")
-    Account toEntity(UpdateBalanceDTO updateBalanceDTO);
+    public static Account toEntity(AccountDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        return Account.builder()
+                .accountId(dto.getId())
+                .alias(dto.getAlias())
+                .balance(dto.getBalance())
+                .build();
+    }
 }

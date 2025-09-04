@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.mocks;
 
+import com.homs.account_rest_api.accounts.dto.AccountDTO;
 import com.homs.account_rest_api.accounts.model.Account;
 import lombok.Getter;
 
