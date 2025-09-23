@@ -1,312 +1,340 @@
 package com.homs.account_rest_api.transactions.service;
 
+import com.homs.account_rest_api.categories.model.Category;
+import com.homs.account_rest_api.categories.repository.CategoryRepository;
 import com.homs.account_rest_api.exception.InvalidParametersException;
-import com.homs.account_rest_api.mocks.DummyTransactions;
-import com.homs.account_rest_api.transactions.enums.TransactionType;
+import com.homs.account_rest_api.exception.ResourceNotCreatedException;
+import com.homs.account_rest_api.mocks.AccountMockFactory;
+import com.homs.account_rest_api.mocks.CategoryMockFactory;
+import com.homs.account_rest_api.mocks.TransactionMockFactory;
+import com.homs.account_rest_api.transactions.dto.CreateTransactionRequest;
+import com.homs.account_rest_api.transactions.dto.TransactionDto;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
 import com.homs.account_rest_api.accounts.model.Account;
 import com.homs.account_rest_api.accounts.repository.AccountRepository;
-import com.homs.account_rest_api.transactions.exceptions.TransactionInvalidData;
 import com.homs.account_rest_api.transactions.model.Transaction;
-import com.homs.account_rest_api.transactions.repository.TransactionRepository;
+import com.homs.account_rest_api.transactions.repository.TransactionJPARepositoryImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.multipart.MultipartFile;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @Slf4j
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
+@RunWith(MockitoJUnitRunner.class)
 public class TransactionServiceTest {
 
-    @MockBean
-    private TransactionRepository transactionRepository;
+    @Mock
+    private TransactionJPARepositoryImpl transactionRepository;
 
-    @MockBean
+    @Mock
     private AccountRepository accountRepository;
 
-    @Autowired
+    @Mock
+    private CategoryRepository categoryRepository;
+
+    @InjectMocks
     private TransactionService transactionService;
 
-    private Account sampleAccount;
-    private Transaction sampleTransaction;
-    private Transaction sampleIncomeTransaction;
-    private final BigDecimal accountBalanceTest = BigDecimal.valueOf(10_500.50);
-    private DummyTransactions dummyTransactions;
+    private TransactionMockFactory transactionMockFactory;
+    private AccountMockFactory accountMockFactory;
+    private CategoryMockFactory categoryMockFactory;
 
     @Before
     public void setUp() {
-        dummyTransactions = new DummyTransactions();
-        sampleAccount = Account.builder()
-                .accountId(UUID.randomUUID().toString())
-                .alias("Account A")
-                .balance(accountBalanceTest)
+        transactionMockFactory = new TransactionMockFactory();
+        accountMockFactory = new AccountMockFactory();
+        categoryMockFactory = new CategoryMockFactory();
+    }
+
+    @Test
+    public void saveTransactionShouldThrowExceptionWhenInvalidAccountId() {
+        CreateTransactionRequest req = CreateTransactionRequest.builder().build();
+        assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(req, "   "));
+        assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(req, null));
+    }
+
+    @Test
+    public void saveTransactionShouldThrowExceptionWithNullOrBlankValues() {
+        CreateTransactionRequest nullRequest = CreateTransactionRequest.builder().build();
+        CreateTransactionRequest invalidRequest = CreateTransactionRequest.builder()
+                .type("  ")
+                .date("  ")
+                .alias("  ")
+                .categoryId("  ")
                 .build();
-        sampleTransaction = Transaction.builder()
-                .transactionId(UUID.randomUUID().toString())
-                .date(LocalDate.of(2024, 10, 15))
-                .type(TransactionType.EXPENSE)
-                .amount(BigDecimal.valueOf(750.99))
-                .account(sampleAccount)
-                .alias("Streaming Service")
-                .build();
-        sampleIncomeTransaction = Transaction.builder()
-                .transactionId(UUID.randomUUID().toString())
-                .date(LocalDate.of(2024, 10, 15))
-                .type(TransactionType.INCOME)
-                .amount(BigDecimal.valueOf(12_750.75))
-                .account(sampleAccount)
-                .alias("Payment")
-                .build();
-    }
-
-    /**
-     * Asserts that ResourceNotFoundException is thrown when an invalid account is
-     * linked to the transaction to be stored
-     */
-    @Test
-    public void assertResourceNotFoundExceptionIsThrow() {
-        when(accountRepository.findById(anyString()))
-                .thenReturn(Optional.empty());
-
-        String accountId = sampleAccount.getAccountId();
-
-        assertThrows(ResourceNotFoundException.class, () ->
-                transactionService.saveTransaction(sampleTransaction, accountId)
-        );
-
-        verify(accountRepository, never()).updateBalance(any());
-        verify(transactionRepository, never()).saveTransaction(any());
-    }
-
-    /**
-     * Validate that every registered income adds to linked account balance
-     */
-    @Test
-    public void assertIncomeAddsToAccountBalance() {
-        BigDecimal expectedBalance = BigDecimal.valueOf(23_251.25);
-        when(accountRepository.findById(anyString()))
-                .thenReturn(Optional.of(sampleAccount));
-
-        when(accountRepository.updateBalance(any()))
-                .thenReturn(Optional.of(sampleAccount));
-
-        when(transactionRepository.saveTransaction(any()))
-                .thenReturn(Optional.of(sampleIncomeTransaction));
-
-        transactionService.saveTransaction(sampleIncomeTransaction, sampleAccount.getAccountId());
-
-        ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
-        verify(accountRepository).updateBalance(accountCaptor.capture());
-
-        assertEquals("Account balance was not updated correctly"
-                , expectedBalance, accountCaptor.getValue().getBalance());
-    }
-
-    /**
-     * Validate that every registered expense subtracts from linked account
-     */
-    @Test
-    public void assertExpenseSubtractsToAccountBalance() {
-        BigDecimal expectedBalance = BigDecimal.valueOf(9_749.51);
-        when(accountRepository.findById(anyString()))
-                .thenReturn(Optional.of(sampleAccount));
-        when(accountRepository.updateBalance(any()))
-                .thenReturn(Optional.of(sampleAccount));
-        when(transactionRepository.saveTransaction(any()))
-                .thenReturn(Optional.of(sampleTransaction));
-
-        transactionService.saveTransaction(sampleTransaction, sampleAccount.getAccountId());
-
-        ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
-        verify(accountRepository).updateBalance(accountCaptor.capture());
-
-        assertEquals(expectedBalance, accountCaptor.getValue().getBalance());
-    }
-
-    /**
-     * Validates rollback if account balance update operation fails
-     */
-    @Test
-    public void assertTransactionRollBackWhenUpdateBalanceFail() {
-        when(accountRepository.findById(any()))
-                .thenReturn(Optional.of(sampleAccount));
-        when(accountRepository.updateBalance(any()))
-                .thenReturn(Optional.empty());
-        when(transactionRepository.saveTransaction(any()))
-                .thenReturn(Optional.of(sampleTransaction));
-
-        String accountId = sampleAccount.getAccountId();
-
-        assertThrows(ResourceNotFoundException.class, () -> transactionService.saveTransaction(sampleTransaction, accountId));
-
-        verify(transactionRepository, never()).saveTransaction(any());
-    }
-
-    /**
-     * Validates saveTransaction throws TransactionInvalidData("Missing account info");
-     * When account info is missing
-     */
-    @Test
-    public void shouldThrowExceptionWhenMissingAccountData() {
-        assertThrows(TransactionInvalidData.class,
-                () -> transactionService.saveTransaction(sampleTransaction, null));
-    }
-
-    /**
-     * Should Throw TransactionInvalidData
-     * When transaction info is missing
-     */
-    @Test
-    public void shouldThrowExceptionWhenMissingTransactionData() {
-        assertThrows(TransactionInvalidData.class,
-                () -> transactionService.saveTransaction(null, "accountId"));
-    }
-
-    /**
-     * getAllTransactionsByMonthAndYear() Should return list of valid data
-     * When called with any month and year
-     */
-    @Test
-    public void getAllTransactionsByMonthAndYearShouldReturnListOfTransactions() {
-        Transaction services = dummyTransactions.getServices();
-        Transaction groceries = dummyTransactions.getGroceries();
-        Transaction salary = dummyTransactions.getSalary();
-
-        when(accountRepository.findById(anyString()))
-                .thenReturn(Optional.of(sampleAccount));
-
-        when(transactionRepository.getAllTransactionsByMonth(anyString(), any(Month.class), any(Year.class)))
-                .thenReturn(List.of(services,groceries,salary));
-
-        List<Transaction> result = transactionService.getAllTransactionsByMonthAndYear(
-                Month.APRIL, Year.now(), "accountId"
-        );
-
-        log.info(String.valueOf(result.get(0)));
-        assertEquals(3, result.size());
-    }
-
-    /**
-     * getAllTransactionsByMonthAndYear() should throw ResourceNotFoundException
-     * When passed invalid accountId
-     */
-    @Test()
-    public void shouldThrowResourceNotFoundExceptionWhenInvalidAccount() {
-        when(accountRepository.findById(anyString()))
-                .thenReturn(Optional.empty());
-
-        Year currentYear = Year.now();
-
-        assertThrows(ResourceNotFoundException.class, () -> transactionService.getAllTransactionsByMonthAndYear(
-                Month.JUNE, currentYear, ""
-        ));
-    }
-
-    /**
-     * getAllTransactionsByMonthAndYear() should return EmptyList
-     * When there is no transactions found for the given period
-     */
-    @Test
-    public void getAllTransactionsByMonthAndYearShouldReturnEmptyListIfCurrentAccountDoesNoHaveTransactions() {
-        when(accountRepository.findById(anyString()))
-                .thenReturn(Optional.of(sampleAccount));
-
-        Year currentYear = Year.now();
-
-        List<Transaction> transactions =
-                transactionService.getAllTransactionsByMonthAndYear(Month.AUGUST, currentYear, "accountId");
-
-        assertTrue(transactions.isEmpty());
-    }
-
-    /**
-     * Happy path
-     */
-    @Test
-    public void loadTransactionsShouldReadCSVContent() {
-        String csvContent = """
-                Amount,Type,Date,Account,Alias,categoryId
-                1000.50,INCOME,2024-04-15,ACC12345,Salary,categoryId
-                -150.75,EXPENSE,2024-04-16,ACC67890,Grocery,categoryId
-                250.00,INCOME,2024-04-17,ACC12345,Freelance,categoryId
-                -50.00,EXPENSE,2024-04-18,ACC67890,Utilities,categoryId
-                """;
-        MultipartFile mockFile = new MockMultipartFile(
-                "file",
-                "test.csv",
-                "text/csv",
-                csvContent.getBytes()
-        );
-        when(transactionRepository.saveTransaction(any(Transaction.class)))
-                .thenReturn(Optional.of(sampleTransaction));
-        List<Transaction> loadedTransactions = transactionService.loadTransactions(mockFile);
-        assertEquals(4, loadedTransactions.size());
-    }
-
-
-    @Test
-    public void loadTransactionsShouldSkipEmptyLines() {
-        String csvContent = """
-                Amount,Type,Date,Account,Alias
-                                
-                """;
-        MultipartFile mockFile = new MockMultipartFile(
-                "file",
-                "test.csv",
-                "text/csv",
-                csvContent.getBytes()
-        );
-        when(transactionRepository.saveTransaction(any(Transaction.class)))
-                .thenReturn(Optional.of(sampleTransaction));
-        List<Transaction> loadedTransactions = transactionService.loadTransactions(mockFile);
-        assertEquals(0, loadedTransactions.size());
-    }
-
-    @Test
-    public void loadTransactionsShouldThrowErrWithAnEmptyFile() {
-        String csvContent = "";
-        MultipartFile mockFile = new MockMultipartFile(
-                "file",
-                "test.csv",
-                "text/csv",
-                csvContent.getBytes()
-        );
-
-        assertThrows(
-                InvalidParametersException.class,
-                () -> transactionService.loadTransactions(mockFile));
-    }
-
-    @Test
-    public void loadTransactionsShouldThrowIOExceptionWhenCorruptedFile() throws IOException {
-        MultipartFile mockFile = mock(MultipartFile.class);
-
-        when(mockFile.getInputStream())
-                .thenThrow(new IOException());
+        List<String> nullErrorMessages = assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(nullRequest, "valid-id")).getErrorMessages();
+        log.info(nullErrorMessages.toString());
+        assertEquals(5, nullErrorMessages.size());
+        List<String> invalidErrorMessages = assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(invalidRequest, "valid-id")).getErrorMessages();
+        log.info(invalidErrorMessages.toString());
+        assertEquals(5, invalidErrorMessages.size());
 
         assertThrows(InvalidParametersException.class,
-                () -> transactionService.loadTransactions(mockFile));
+                () -> transactionService.saveTransaction(null, "valid-id"));
+    }
+
+    @Test
+    public void saveTransactionShouldThrowExceptionWithInvalidAmounts() {
+        CreateTransactionRequest expenseRequest = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(-1200.75))
+                .alias("Random Expense")
+                .date("05-07-2025")
+                .type("EXPENSE")
+                .categoryId("cat-games")
+                .build();
+
+        CreateTransactionRequest incomeRequest = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(-1200.75))
+                .type("INCOME")
+                .alias("Random Income")
+                .date("05-07-2025")
+                .categoryId("cat-games")
+                .build();
+
+        List<String> expenseReqErrors = assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(expenseRequest, "valid-id")).getErrorMessages();
+        log.info(expenseReqErrors.toString());
+        assertEquals(1, expenseReqErrors.size());
+        List<String> incomeReqErrors = assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(incomeRequest, "valid-id")).getErrorMessages();
+        log.info(incomeReqErrors.toString());
+        assertEquals(1, incomeReqErrors.size());
+    }
+
+    @Test
+    public void saveTransactionShouldThrowExceptionWithIncorrectType() {
+        CreateTransactionRequest expenseRequest = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(1200.75))
+                .alias("Random Expense")
+                .date("05-07-2025")
+                .type("INVALID-TYPE")
+                .categoryId("cat-games")
+                .build();
+
+        InvalidParametersException errors = assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(expenseRequest, "account-id"));
+
+        log.info(errors.getErrorMessages().toString());
+    }
+
+    @Test
+    public void saveTransactionShouldThrowExceptionWithInvalidDate() {
+        CreateTransactionRequest expenseRequest = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(1200.75))
+                .alias("Random Expense")
+                .date("05-15-2025")
+                .type("EXPENSE")
+                .categoryId("cat-games")
+                .build();
+
+        InvalidParametersException results = assertThrows(InvalidParametersException.class,
+                () -> transactionService.saveTransaction(expenseRequest, "account-id"));
+        log.info(results.getErrorMessages().toString());
+    }
+
+    @Test
+    public void saveTransactionShouldThrowNotFoundWhenAccountOrCategoryNotExists() {
+        CreateTransactionRequest expenseRequest = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(1200.75))
+                .alias("Random Expense")
+                .date("05-08-2025")
+                .type("EXPENSE")
+                .categoryId("cat-games")
+                .build();
+
+        when(accountRepository.findById("not-existent-account-id"))
+                .thenReturn(Optional.empty());
+
+        when(accountRepository.findById("valid-accountId"))
+                .thenReturn(Optional.of(accountMockFactory.mainAccount()));
+
+        when(categoryRepository.getCategory(anyString()))
+                .thenReturn(Optional.empty());
+
+        String missingAccountMsg = assertThrows(ResourceNotFoundException.class,
+                () -> transactionService.saveTransaction(expenseRequest, "not-existent-account-id"))
+                .getMessage();
+        log.info(missingAccountMsg);
+
+        String missingCategoryMsg = assertThrows(ResourceNotFoundException.class,
+                () -> transactionService.saveTransaction(expenseRequest, "valid-accountId")).getMessage();
+        log.info(missingCategoryMsg);
+    }
+
+    @Test
+    public void saveTransactionShouldThrowExceptionWhenResourceNotCreated() {
+        CreateTransactionRequest req = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(15_000))
+                .type("EXPENSE")
+                .date("05-08-2025")
+                .alias("Some Expense")
+                .categoryId("cat-transportation")
+                .build();
+
+        Account mainAccount = accountMockFactory.mainAccount();
+        Category transportation = categoryMockFactory.transportation();
+
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.of(mainAccount));
+
+        when(categoryRepository.getCategory(anyString()))
+                .thenReturn(Optional.of(transportation));
+
+        when(transactionRepository.saveTransaction(any(Transaction.class)))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotCreatedException.class,
+                () -> transactionService.saveTransaction(req, "valid-id"));
+    }
+
+    @Test
+    public void saveTransactionShouldSaveExpenseTransaction() {
+        CreateTransactionRequest req = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(15_000))
+                .type("EXPENSE")
+                .date("05-08-2025")
+                .alias("Some Expense")
+                .categoryId("cat-transportation")
+                .build();
+
+        Account mainAccount = accountMockFactory.mainAccount();
+        Category transportation = categoryMockFactory.transportation();
+
+
+        Transaction expense = transactionMockFactory.createExpense(
+                mainAccount,
+                transportation,
+                15_000.00,
+                "Some Expense"
+        );
+
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.of(accountMockFactory.mainAccount()));
+
+        when(categoryRepository.getCategory(anyString()))
+                .thenReturn(Optional.of(categoryMockFactory.transportation()));
+
+        when(transactionRepository.saveTransaction(any(Transaction.class)))
+                .thenReturn(Optional.of(expense));
+
+        TransactionDto savedTransaction = transactionService
+                .saveTransaction(req, "main-account-id");
+
+        log.info(savedTransaction.toString());
+
+        assertEquals(
+                BigDecimal.valueOf(35_000.0),
+                savedTransaction.getAccountDTO().getBalance()
+        );
+    }
+
+    @Test
+    public void saveTransactionShouldSaveIncomeTransaction() {
+        CreateTransactionRequest req = CreateTransactionRequest.builder()
+                .amount(BigDecimal.valueOf(15_000))
+                .type("INCOME")
+                .date("05-08-2025")
+                .alias("Some Income")
+                .categoryId("cat-salary")
+                .build();
+
+        Account mainAccount = accountMockFactory.mainAccount();
+        Category salary = categoryMockFactory.salary();
+
+
+        Transaction income = transactionMockFactory.createIncome(
+                mainAccount,
+                salary,
+                15_000.00,
+                "Some Income"
+        );
+
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.of(accountMockFactory.mainAccount()));
+
+        when(categoryRepository.getCategory(anyString()))
+                .thenReturn(Optional.of(categoryMockFactory.salary()));
+
+        when(transactionRepository.saveTransaction(any(Transaction.class)))
+                .thenReturn(Optional.of(income));
+
+        TransactionDto savedTransaction = transactionService
+                .saveTransaction(req, "main-account-id");
+
+        log.info(savedTransaction.toString());
+
+        assertEquals(
+                BigDecimal.valueOf(65_000.0),
+                savedTransaction.getAccountDTO().getBalance()
+        );
+    }
+
+
+    @Test
+    public void getAllTransactionsByMonthAndYearShouldThrowExceptionWithInvalidParams() {
+        String invalidMonth = "Augustus";
+        String invalidNumericYear = "-9999";
+        String invalidNonNumericYear = "ABDC";
+        String validMonth = "may";
+        String validYear = "2025";
+        String invalidMonthMsg = assertThrows(InvalidParametersException.class,
+                () -> transactionService.getAllTransactionsByMonthAndYear(invalidMonth,
+                        validYear, "valid-acc-id")).getErrorMessages().toString();
+        log.info(invalidMonthMsg);
+        String invalidNumericYearMsg = assertThrows(InvalidParametersException.class,
+                () -> transactionService.getAllTransactionsByMonthAndYear(validMonth,
+                        invalidNumericYear, "valid-acc-id")).getErrorMessages().toString();
+        log.info(invalidNumericYearMsg);
+        String invalidadNonNumericYear = assertThrows(InvalidParametersException.class,
+                () -> transactionService.getAllTransactionsByMonthAndYear(validMonth,
+                        invalidNonNumericYear, "valid-acc-id")).getErrorMessages().toString();
+        log.info(invalidadNonNumericYear);
+    }
+
+    @Test
+    public void getAllTransactionsByMonthAndYearShouldSetMonthAndYearToCurrentWithNullOrBlankValues() {
+        Account mainAccount = accountMockFactory.mainAccount();
+        String blankMonth = "  ";
+        String blankYear = "  ";
+        Month currentMonth = LocalDate.now().getMonth();
+        Year currentYear = Year.now();
+
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.of(mainAccount));
+
+        transactionService.getAllTransactionsByMonthAndYear(blankMonth, blankYear, "valid-id");
+
+        verify(transactionRepository).getAllTransactionsByMonth(
+                anyString(),
+                eq(currentMonth),
+                eq(currentYear)
+        );
+    }
+
+    @Test
+    public void getAllTransactionsByMonthAndYearShouldThrowExceptionWithInvalidAccountId() {
+        when(accountRepository.findById(anyString()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> transactionService
+                        .getAllTransactionsByMonthAndYear("MAY", "2025", "invalid-id"));
     }
 }

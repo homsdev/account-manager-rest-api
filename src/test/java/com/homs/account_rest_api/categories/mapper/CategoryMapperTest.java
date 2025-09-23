@@ -32,7 +32,6 @@ public class CategoryMapperTest extends TestCase {
                 .build();
         CategoryDTO result = categoryMapper.toCategoryDto(food);
 
-        assertEquals(food.getId(), result.getId());
         assertEquals(food.getName(), result.getName());
     }
 

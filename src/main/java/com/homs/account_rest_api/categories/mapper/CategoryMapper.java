@@ -14,7 +14,6 @@ import java.util.List;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CategoryMapper {
 
-    @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     CategoryDTO toCategoryDto(Category category);
 
