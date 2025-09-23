@@ -84,7 +84,7 @@ public class SummaryService {
 
         TransactionDto largestExpense = expenses.stream()
                 .max(Comparator.comparing(Transaction::getAmount))
-                .map(transactionMapper::toTransactionDto)
+                .map(TransactionMapper::toTransactionDto)
                 .orElse(null);
 
 

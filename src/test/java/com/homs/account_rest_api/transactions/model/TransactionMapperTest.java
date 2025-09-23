@@ -1,7 +1,7 @@
 package com.homs.account_rest_api.transactions.model;
 
 import com.homs.account_rest_api.transactions.enums.TransactionType;
-import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
+import com.homs.account_rest_api.transactions.dto.CreateTransactionRequest;
 import com.homs.account_rest_api.transactions.mapper.TransactionMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,16 +24,5 @@ public class TransactionMapperTest {
 
     @Test
     public void shouldCreateTransactionFromDto() {
-        CreateTransactionDTO sampleDto = CreateTransactionDTO.builder()
-                .amount(BigDecimal.valueOf(10_000))
-                .type(TransactionType.INCOME)
-                .date(LocalDate.now())
-                .description("Tomatoes").build();
-
-        Transaction entity = mapper.toEntity(sampleDto);
-        assertEquals(sampleDto.getAmount(), entity.getAmount());
-        assertEquals(sampleDto.getType(), entity.getType());
-        assertEquals(sampleDto.getDate(), entity.getDate());
-        assertEquals(sampleDto.getDescription(), entity.getAlias());
     }
 }

@@ -1,11 +1,10 @@
 package com.homs.account_rest_api.transactions.controller;
 
 import com.homs.account_rest_api.dto.ApiResponseDTO;
-import com.homs.account_rest_api.transactions.dto.CreateTransactionDTO;
-import com.homs.account_rest_api.transactions.model.Transaction;
+import com.homs.account_rest_api.transactions.dto.CreateTransactionRequest;
+import com.homs.account_rest_api.transactions.dto.TransactionDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,8 +20,8 @@ public interface TransactionController {
             summary = "Saves a transaction",
             description = "Saves transaction data in datasource"
     )
-    ResponseEntity<ApiResponseDTO<Transaction>> createTransaction(
-            @PathVariable String accountId, @Valid @RequestBody CreateTransactionDTO dto
+    ResponseEntity<ApiResponseDTO<TransactionDto>> createTransaction(
+            @PathVariable String accountId, @RequestBody CreateTransactionRequest dto
     );
 
 
@@ -30,15 +29,9 @@ public interface TransactionController {
             summary = "Retrieves transactions",
             description = "Retrieves transactions in a given month and year"
     )
-    ResponseEntity<ApiResponseDTO<List<Transaction>>> getTransactionsByMonthAndYear(
+    ResponseEntity<ApiResponseDTO<List<TransactionDto>>> getTransactionsByMonthAndYear(
             @PathVariable String accountId,
             @RequestParam String month,
             @RequestParam String year
     );
-
-    @Operation(
-            summary = "Load transactions by a csv file",
-            description = "Load transactions in a bulk operation by uploading a CSV file"
-    )
-    ResponseEntity<ApiResponseDTO<List<Transaction>>> loadTransactions(@RequestParam("file") MultipartFile file);
 }

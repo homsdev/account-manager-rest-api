@@ -1,5 +1,6 @@
 package com.homs.account_rest_api.transactions.dto;
 
+import com.homs.account_rest_api.accounts.dto.AccountDTO;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -19,4 +20,5 @@ public class TransactionDto {
     private TransactionType type;
     private LocalDate date;
     private String alias;
+    private AccountDTO accountDTO;
 }

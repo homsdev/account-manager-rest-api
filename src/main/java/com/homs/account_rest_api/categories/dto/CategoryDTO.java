@@ -8,6 +8,5 @@ import lombok.ToString;
 @Getter
 @ToString
 public class CategoryDTO {
-    private String id;
     private String name;
 }
