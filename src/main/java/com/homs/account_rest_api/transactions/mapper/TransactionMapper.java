@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -39,7 +38,6 @@ public class TransactionMapper {
         }
 
         AccountDTO accountDTO = AccountMapper.toDTO(transaction.getAccount());
-
 
         return TransactionDto.builder()
                 .id(transaction.getTransactionId())

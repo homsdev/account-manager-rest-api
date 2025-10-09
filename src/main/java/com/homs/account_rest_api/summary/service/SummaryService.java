@@ -30,7 +30,6 @@ public class SummaryService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
-    private final TransactionMapper transactionMapper;
     private final CategoryRepository categoryRepository;
 
     private List<Transaction> getAllExpenses(List<Account> accounts, Month month, Year year) {
