@@ -1,0 +1,14 @@
+version: '3.8'#Version of docker composes
+services: # containers
+  account-manager-rest-db:
+    image: 'mariadb:latest'
+    container_name: account-manager-mariadb
+    ports:
+      - 3306:3306
+    volumes:
+      - account-data:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
+volumes:
+  account-data:
