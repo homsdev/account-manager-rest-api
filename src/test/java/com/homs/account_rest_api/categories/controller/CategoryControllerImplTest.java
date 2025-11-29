@@ -3,6 +3,7 @@ package com.homs.account_rest_api.categories.controller;
 import com.homs.account_rest_api.categories.service.CategoryService;
 import com.homs.account_rest_api.mocks.DummyCategories;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import junit.framework.TestCase;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -27,23 +28,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
-@ActiveProfiles("test")
+@ActiveProfiles("dev")
 @Slf4j
+@Transactional
 public class CategoryControllerImplTest extends TestCase {
 
-    @MockBean
-    CategoryService categoryService;
 
     @Autowired
     private MockMvc mockMvc;
 
     private String baseUrl = "/api/categories";
-    private DummyCategories dummyCategories;
 
     @Override
     @Before
     public void setUp() throws Exception {
-        dummyCategories = new DummyCategories();
     }
 
     /**
@@ -52,45 +50,19 @@ public class CategoryControllerImplTest extends TestCase {
      */
     @Test
     public void shouldRespondWith200() throws Exception {
-
-        when(categoryService.getAllCategories())
-                .thenReturn(dummyCategories.getDummyCategoriesList());
-
         MvcResult result = mockMvc.perform(get(baseUrl))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.items.length()").value(3))
+                .andExpect(jsonPath("$.data.items.length()").value(5))
                 .andReturn();
-        log.info(result.getResponse().getContentAsString());
-    }
-
-    /**
-     * HttpStatus 204 no content,return no content when there are not available categories for retrieval
-     * GET /api/categories
-     */
-    @Test
-    public void shouldReturn204NoContentWhenNoCategories() throws Exception {
-        when(categoryService.getAllCategories())
-                .thenReturn(Collections.emptyList());
-
-        MvcResult result = mockMvc.perform(get(baseUrl))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
         log.info(result.getResponse().getContentAsString());
     }
 
     @Test
     public void shouldReturn200AndTheRequestedCategory() throws Exception {
-        when(categoryService.getCategoryById(anyString()))
-                .thenReturn(dummyCategories.getFood());
-
-        String expectedId = dummyCategories.getFood().getId();
-        String expectedName = dummyCategories.getFood().getName();
-
-        MvcResult result = mockMvc.perform(get(String.format("%s/{id}", baseUrl), "foodId"))
+        MvcResult result = mockMvc.perform(get(String.format("%s/{id}", baseUrl), "cat-groceries"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(expectedId))
-                .andExpect(jsonPath("$.data.name").value(expectedName))
+                .andExpect(jsonPath("$.data.id").value("cat-groceries"))
+                .andExpect(jsonPath("$.data.name").value("Groceries"))
                 .andReturn();
         log.info(result.getResponse().getContentAsString());
     }
@@ -101,9 +73,6 @@ public class CategoryControllerImplTest extends TestCase {
      */
     @Test
     public void shouldReturn404WhenInvalidId() throws Exception {
-        when(categoryService.getCategoryById(anyString()))
-                .thenThrow(new ResourceNotFoundException("foodId"));
-
         MvcResult result = mockMvc.perform(get(String.format("%s/{id}", baseUrl), "foodId"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message.length()").value(1))

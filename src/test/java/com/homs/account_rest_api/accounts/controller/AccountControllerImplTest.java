@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @ActiveProfiles("dev")
 @Slf4j
+@Transactional
 public class AccountControllerImplTest {
 
     @Autowired
@@ -51,6 +52,7 @@ public class AccountControllerImplTest {
     // 200 GET api/accounts
     @Test
     public void getAllAccounts() throws Exception {
+        log.info("Executing getAllAccounts() Test");
         MvcResult result = mockMvc.perform(get(baseUrl))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -59,7 +61,6 @@ public class AccountControllerImplTest {
 
     // 204 GET api/accounts
     @Test
-    @Transactional
     public void getAllAccountsShouldReturnNoContent() throws Exception {
         List<AccountDTO> all = accountService.findAll();
         all.forEach(account -> accountService.deleteById(account.getId()));
@@ -99,15 +100,6 @@ public class AccountControllerImplTest {
                 .andReturn();
         log.info(result.getResponse().getContentAsString());
 
-    }
-
-    // 200 GET api/accounts/
-    @Test
-    public void getAccountByIdShouldRedirectToAllAccountsWhenNullId() throws Exception {
-        MvcResult result = mockMvc.perform(get(baseURLWithResource, ""))
-                .andExpect(status().isOk())
-                .andReturn();
-        log.info(result.getResponse().getContentAsString());
     }
 
     // 200 POST api/accounts

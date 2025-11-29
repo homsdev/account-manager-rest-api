@@ -3,56 +3,43 @@ package com.homs.account_rest_api.categories.service;
 import com.homs.account_rest_api.categories.model.Category;
 import com.homs.account_rest_api.categories.repository.CategoryRepository;
 import com.homs.account_rest_api.exception.ResourceNotFoundException;
+import com.homs.account_rest_api.mocks.CategoryMockFactory;
 import junit.framework.TestCase;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @Slf4j
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
+@RunWith(MockitoJUnitRunner.class)
 public class CategoryServiceTest extends TestCase {
 
-    @MockBean
+
+    @Mock
     private CategoryRepository categoryRepository;
 
-    @Autowired
+    @InjectMocks
     private CategoryService categoryService;
 
-    private Category food, games, travels;
+    private Category food;
     private List<Category> dummyCategories;
 
     @Override
     @Before
     public void setUp() throws Exception {
-        food = Category.builder()
-                .id(UUID.randomUUID().toString())
-                .name("food")
-                .build();
-        games = Category.builder()
-                .id(UUID.randomUUID().toString())
-                .name("games")
-                .build();
-        travels = Category.builder()
-                .id(UUID.randomUUID().toString())
-                .name("travels")
-                .build();
-        dummyCategories = List.of(food, games, travels);
+        CategoryMockFactory categoryMockFactory = new CategoryMockFactory();
+        dummyCategories = categoryMockFactory.all();
+        food = categoryMockFactory.foodCategory();
     }
 
     @Test
@@ -61,6 +48,7 @@ public class CategoryServiceTest extends TestCase {
                 .thenReturn(dummyCategories);
 
         List<Category> result = categoryService.getAllCategories();
+        log.info("Retrieved categories: {}",result);
         assertEquals(dummyCategories, result);
     }
 
@@ -70,7 +58,6 @@ public class CategoryServiceTest extends TestCase {
                 .thenReturn(Collections.emptyList());
 
         List<Category> result = categoryService.getAllCategories();
-
         assertTrue(result.isEmpty());
     }
 

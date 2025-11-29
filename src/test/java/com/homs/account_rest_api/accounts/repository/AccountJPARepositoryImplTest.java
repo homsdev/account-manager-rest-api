@@ -20,8 +20,8 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 @Slf4j
+@RunWith(MockitoJUnitRunner.class)
 public class AccountJPARepositoryImplTest {
 
     @Mock

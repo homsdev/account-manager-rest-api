@@ -3,26 +3,20 @@ package com.homs.account_rest_api.categories.mapper;
 import com.homs.account_rest_api.categories.dto.CategoryDTO;
 import com.homs.account_rest_api.categories.dto.CategoryListResponseDTO;
 import com.homs.account_rest_api.categories.model.Category;
-import junit.framework.TestCase;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.List;
 
-@Slf4j
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
-public class CategoryMapperTest extends TestCase {
+import static org.junit.Assert.*;
 
-    @Autowired
-    private CategoryMapper categoryMapper;
+@Slf4j
+@RunWith(MockitoJUnitRunner.class)
+public class CategoryMapperTest {
 
     @Test
     public void shouldConvertToCategoryDto() {
@@ -30,14 +24,14 @@ public class CategoryMapperTest extends TestCase {
                 .id("foodId")
                 .name("food")
                 .build();
-        CategoryDTO result = categoryMapper.toCategoryDto(food);
+        CategoryDTO result = CategoryMapper.toCategoryDto(food);
 
         assertEquals(food.getName(), result.getName());
     }
 
     @Test
     public void shouldReturnNullWhenPassedNullCategory() {
-        CategoryDTO result = categoryMapper.toCategoryDto(null);
+        CategoryDTO result = CategoryMapper.toCategoryDto(null);
         assertNull(result);
     }
 
@@ -57,7 +51,7 @@ public class CategoryMapperTest extends TestCase {
                 .build();
         List<Category> categories = List.of(food, games, movies);
 
-        CategoryListResponseDTO result = categoryMapper.toCategoryListResponseDTO(categories);
+        CategoryListResponseDTO result = CategoryMapper.toCategoryListResponseDTO(categories);
         log.info(result.toString());
 
         assertEquals(3, result.getItems().size());
@@ -67,7 +61,7 @@ public class CategoryMapperTest extends TestCase {
     public void shouldReturnAnEmptyList() {
         List<Category> empty = Collections.emptyList();
 
-        CategoryListResponseDTO result = categoryMapper.toCategoryListResponseDTO(empty);
+        CategoryListResponseDTO result = CategoryMapper.toCategoryListResponseDTO(empty);
 
         assertTrue(result.getItems().isEmpty());
     }

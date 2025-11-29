@@ -32,6 +32,10 @@ public class CategoryMockFactory {
                 c -> Category.builder().id("cat-salary").name("Salary").build());
     }
 
+    /**
+     * Returns 4 dummy categories for testing purposes
+     * @return 4 Categories
+     */
     public List<Category> all() {
         gamesCategory();
         foodCategory();

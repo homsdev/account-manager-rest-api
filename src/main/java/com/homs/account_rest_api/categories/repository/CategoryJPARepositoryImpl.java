@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Repository
-@Profile({"dev"})
+@Profile({"dev","test"})
 @RequiredArgsConstructor
 public class CategoryJPARepositoryImpl implements CategoryRepository {
 
