@@ -8,16 +8,17 @@ import com.homs.account_rest_api.summary.service.SummaryService;
 import com.homs.account_rest_api.transactions.dto.TransactionDto;
 import com.homs.account_rest_api.transactions.enums.TransactionType;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -31,18 +32,22 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
-@ActiveProfiles("test")
+@RunWith(MockitoJUnitRunner.class)
 @Slf4j
 public class SummaryControllerImplTest {
 
-    @MockBean
+    @Mock
     SummaryService summaryService;
 
-    @Autowired
-    private MockMvc mockMvc;
+    SummaryController summaryController;
+
+    MockMvc mockMvc;
+
+    @Before
+    public void setUp() throws Exception {
+        summaryController = new SummaryControllerImpl(summaryService);
+        mockMvc = MockMvcBuilders.standaloneSetup(summaryController).build();
+    }
 
     /**
      * HttpStatus 200 Happy Path, retrieve month general summary

@@ -43,7 +43,7 @@ public class AccountControllerImpl implements AccountController {
 
     }
 
-    @GetMapping(value = {"", "/"})
+    @GetMapping
     @Override
     public ResponseEntity<ApiResponseDTO<List<AccountDTO>>> getAllAccounts() {
         log.info("Executing getAllAccounts Controller");

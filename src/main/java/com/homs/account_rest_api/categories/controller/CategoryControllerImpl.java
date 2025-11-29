@@ -25,7 +25,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class CategoryControllerImpl implements CategoryController {
 
     private final CategoryService categoryService;
-    private final CategoryMapper categoryMapper;
 
     @GetMapping
     @Override
@@ -37,7 +36,7 @@ public class CategoryControllerImpl implements CategoryController {
             return ResponseEntity.noContent().build();
         }
 
-        CategoryListResponseDTO categoriesDto = categoryMapper.toCategoryListResponseDTO(allCategories);
+        CategoryListResponseDTO categoriesDto = CategoryMapper.toCategoryListResponseDTO(allCategories);
 
         ApiResponseDTO<CategoryListResponseDTO> res = ApiResponseDTO
                 .<CategoryListResponseDTO>builder()
@@ -59,7 +58,7 @@ public class CategoryControllerImpl implements CategoryController {
 
         Category category = categoryService.getCategoryById(id);
 
-        CategoryDTO categoryDto = categoryMapper.toCategoryDto(category);
+        CategoryDTO categoryDto = CategoryMapper.toCategoryDto(category);
 
         ApiResponseDTO<CategoryDTO> res = ApiResponseDTO.<CategoryDTO>builder()
                 .data(categoryDto)

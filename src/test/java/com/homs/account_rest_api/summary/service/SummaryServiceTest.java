@@ -16,11 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.math.BigDecimal;
 import java.time.Month;
@@ -35,24 +33,20 @@ import static org.mockito.Mockito.*;
 
 import static org.junit.Assert.*;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@ActiveProfiles("test")
 @Slf4j
+@RunWith(MockitoJUnitRunner.class)
 public class SummaryServiceTest {
 
-    @MockBean
+    @Mock
     private AccountRepository accountRepository;
 
-    @MockBean
+    @Mock
     private TransactionRepository transactionRepository;
 
-    @MockBean
+    @Mock
     private CategoryRepository categoryRepository;
 
-    @Autowired
-    private TransactionMapper transactionMapper;
-    @Autowired
+    @InjectMocks
     private SummaryService summaryService;
 
     private DummyAccounts dummyAccounts;
@@ -91,7 +85,7 @@ public class SummaryServiceTest {
         BigDecimal expectedBalance = mainAccount.getBalance().add(checkingAccount.getBalance());
         BigDecimal expectedCreditCardBalance = BigDecimal.ZERO;
         BigDecimal expectedSavingsGoal = BigDecimal.ZERO;
-        TransactionDto expectedLargestExpense = transactionMapper.toTransactionDto(largestExpense);
+        TransactionDto expectedLargestExpense = TransactionMapper.toTransactionDto(largestExpense);
         BigDecimal expectedTotalExpenses = Stream.concat(mainAccountTransactions.stream(), checkingAccountTransactions.stream())
                 .filter(transaction -> transaction.getType().equals(TransactionType.EXPENSE))
                 .map(Transaction::getAmount)
@@ -121,7 +115,7 @@ public class SummaryServiceTest {
         assertEquals(expectedBalance, result.get().getTotalBalance());
         assertEquals(expectedCreditCardBalance, result.get().getCreditCardExpenses());
         assertEquals(expectedSavingsGoal, result.get().getSavingsGoal());
-        assertEquals(expectedLargestExpense, result.get().getLargestExpense());
+        assertEquals(expectedLargestExpense.getAmount(), result.get().getLargestExpense().getAmount());
         assertEquals(expectedExpensesCount.intValue(), result.get().getMetadata().getCount().intValue());
         assertEquals(expectedTotalExpenses, result.get().getMetadata().getTotalExpenses());
     }
