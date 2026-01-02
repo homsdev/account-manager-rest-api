@@ -1,0 +1,8 @@
+version: '3.8'#Version of docker composes
+services: # containers
+  backend:
+    build:
+      context: ../../
+      dockerfile: docker/Dockerfile
+    ports:
+      - '8080:8080'

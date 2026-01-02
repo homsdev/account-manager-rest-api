@@ -9,13 +9,13 @@ services:
       - "3306:3306"
     networks:
       - app-network
-
   app:
     build: .
     environment:
-      DB.URL: jdbc:mariadb://db:3306/account-manager
-      DB.USER: root
-      DB.PASS: admin
+      - DB_URL=jdbc:mariadb://db:3306/account-manager
+      - DB_USER=root
+      - DB_PASS=admin
+      - SPRING_PROFILES_ACTIVE=test
     ports:
       - "8080:8080"
     networks:

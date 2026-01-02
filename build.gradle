@@ -1,0 +1,68 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.9'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+}
+
+group = 'com.homs'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	mapstructVersion = '1.6.2'
+	lombokVersion = '1.18.30'
+	springDocVersion = '2.5.0'
+	jacksonVersion = '2.13.0'
+	powermockVersion = '2.0.0'
+	junitVersion = '4.13.2' // Or omit if using default
+}
+
+dependencies {
+	// Core Spring Boot dependencies
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+	// Database
+	implementation 'org.mariadb.jdbc:mariadb-java-client:1.5.7'
+	runtimeOnly 'com.h2database:h2'
+
+	// Utils
+	compileOnly "org.projectlombok:lombok:${lombokVersion}"
+	annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+	compileOnly 'org.projectlombok:lombok:1.18.30' // Lombok scope 'provided' equivalent
+
+	// dotenv
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+	// Testing dependencies
+	testCompileOnly 'org.projectlombok:lombok:1.18.26'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.mockito:mockito-core:4.8.1'
+	testImplementation 'org.powermock:powermock-module-junit4:2.0.0'
+	testImplementation 'org.powermock:powermock-api-mockito2:2.0.0'
+	testImplementation 'junit:junit:4.13.2'
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+	options.compilerArgs += ['-parameters']
+}
+
+test {
+	//useJUnitPlatform()
+}
