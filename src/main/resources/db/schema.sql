@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS cli_account(
+CREATE TABLE IF NOT EXISTS cli_account (
     account_id VARCHAR(60) NOT NULL PRIMARY KEY,
     balance DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0),
     alias VARCHAR(60) NOT NULL
