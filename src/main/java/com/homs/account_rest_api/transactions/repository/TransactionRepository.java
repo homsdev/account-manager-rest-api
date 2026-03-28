@@ -33,5 +33,16 @@ public interface TransactionRepository {
      * @param year {@link Year}
      * @return A {@link List} of {@link Transaction} for the given month
      */
-    List<Transaction> getAllTransactionsByMonth(String accountId,Month month, Year year);
+    List<Transaction> getAllTransactionsByMonth(Long accountId,Month month, Year year);
+
+    /**
+     * @deprecated
+     * @param accountId
+     * @param month
+     * @param year
+     * @return
+     */
+    default List<Transaction> getAllTransactionsByMonth(String accountId, Month month, Year year){
+        return List.of();
+    };
 }

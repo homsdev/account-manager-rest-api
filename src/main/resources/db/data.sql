@@ -1,30 +1,36 @@
 --Insert dummy account data
-INSERT INTO cli_account(account_id,balance,alias)
-VALUES('e63e7a68-9e5e-45ab-a833-5dec938f08a8',70000.00,'Main Checking Account');
+INSERT INTO cli_account(balance, alias, type)
+VALUES (70000.00, 'Main Checking Account', 'SAVINGS');
 
-INSERT INTO cli_account(account_id,balance,alias)
-VALUES('644cf9d5-c148-4bb5-bdcb-2c2c9725c200',120000.00,'Savings Account');
+INSERT INTO cli_account(balance, alias, type)
+VALUES (120000.00, 'Savings Account', 'CHECKING');
 
-INSERT INTO cli_category(category_id,category_name)
-VALUES('cat-games','Games');
+INSERT INTO cli_account(balance, alias, type)
+VALUES (24786.75, 'Nu Account', 'CHECKING');
 
-INSERT INTO cli_category(category_id,category_name)
-VALUES('cat-transportation','Transportation');
+INSERT INTO cli_category(category_id, category_name)
+VALUES (1, 'Games');
 
-INSERT INTO cli_category(category_id,category_name)
-VALUES('cat-salary','Salary');
+INSERT INTO cli_category(category_id, category_name)
+VALUES (2, 'Transportation');
 
-INSERT INTO cli_category(category_id,category_name)
-VALUES('cat-groceries','Groceries');
+INSERT INTO cli_category(category_id, category_name)
+VALUES (3, 'Salary');
 
-INSERT INTO cli_category(category_id,category_name)
-VALUES('cat-services','Services');
+INSERT INTO cli_category(category_id, category_name)
+VALUES (4, 'Groceries');
 
-INSERT INTO cli_transaction(transaction_id,transaction_amount,transaction_type,transaction_date,transaction_alias,transaction_account,transaction_category)
-VALUES('574bea1c-521d-4f57-b555-e255449eef28',1500.00,'EXPENSE','2025-08-16','Groceries','e63e7a68-9e5e-45ab-a833-5dec938f08a8','cat-groceries');
+INSERT INTO cli_category(category_id, category_name)
+VALUES (5, 'Services');
 
-INSERT INTO cli_transaction(transaction_id,transaction_amount,transaction_type,transaction_date,transaction_alias,transaction_account,transaction_category)
-VALUES('09d02618-eb5f-402a-835b-838b796da903',450.65,'EXPENSE','2025-08-01','Netflix','e63e7a68-9e5e-45ab-a833-5dec938f08a8','cat-services');
+INSERT INTO cli_transaction(amount, type, date, alias,
+                            transaction_account, transaction_category)
+VALUES (1500.00, 'EXPENSE', '2026-03-16', 'Groceries', 1, 4);
 
-INSERT INTO cli_transaction(transaction_id,transaction_amount,transaction_type,transaction_date,transaction_alias,transaction_account,transaction_category)
-VALUES('749f6a3d-6c71-49d2-b6d4-2579fa2d9943',649.99,'EXPENSE','2025-08-16','Phone','e63e7a68-9e5e-45ab-a833-5dec938f08a8','cat-services');
+INSERT INTO cli_transaction(amount, type, date, alias,
+                            transaction_account, transaction_category)
+VALUES (1500.00, 'EXPENSE', '2026-03-20', 'Groceries', 1, 4);
+
+INSERT INTO cli_transaction(amount, type, date, alias,
+                            transaction_account, transaction_category)
+VALUES (1500.00, 'EXPENSE', '2026-03-25', 'Groceries', 1, 4);

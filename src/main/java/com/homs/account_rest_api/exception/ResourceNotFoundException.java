@@ -3,7 +3,7 @@ package com.homs.account_rest_api.exception;
 public class ResourceNotFoundException extends RuntimeException {
 
     public ResourceNotFoundException() {
-        this("Requested Resource was not found");
+        super("Requested Resource was not found");
     }
 
     public ResourceNotFoundException(String id) {

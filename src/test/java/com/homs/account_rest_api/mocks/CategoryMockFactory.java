@@ -12,24 +12,24 @@ public class CategoryMockFactory {
 
     private final Map<String, Category> namedCategories = new HashMap<>();
 
-    public Category gamesCategory() {
+    public Category createGamesCategory() {
         return namedCategories.computeIfAbsent("Games",
-                c -> Category.builder().id("cat-games").name("Games").build());
+                c -> Category.builder().id(1L).name("Games").build());
     }
 
-    public Category foodCategory() {
+    public Category createFoodCategory() {
         return namedCategories.computeIfAbsent("Food",
-                c -> Category.builder().id("cat-food").name("Food").build());
+                c -> Category.builder().id(2L).name("Food").build());
     }
 
-    public Category transportation() {
+    public Category createTransportationCategory() {
         return namedCategories.computeIfAbsent("Transportation",
-                c -> Category.builder().id("cat-transportation").name("Transportation").build());
+                c -> Category.builder().id(3L).name("Transportation").build());
     }
 
-    public Category salary() {
+    public Category createSalaryCategory() {
         return namedCategories.computeIfAbsent("Salary",
-                c -> Category.builder().id("cat-salary").name("Salary").build());
+                c -> Category.builder().id(4L).name("Salary").build());
     }
 
     /**
@@ -37,10 +37,10 @@ public class CategoryMockFactory {
      * @return 4 Categories
      */
     public List<Category> all() {
-        gamesCategory();
-        foodCategory();
-        transportation();
-        salary();
+        createGamesCategory();
+        createFoodCategory();
+        createTransportationCategory();
+        createSalaryCategory();
         return namedCategories.values().stream().toList();
     }
 
