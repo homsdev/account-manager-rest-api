@@ -1,20 +1,18 @@
 package com.homs.account_rest_api.accounts.controller;
 
-import com.homs.account_rest_api.accounts.dto.AccountDTO;
-import com.homs.account_rest_api.dto.ApiResponseDTO;
+import com.homs.account_rest_api.accounts.dto.*;
 
+import com.homs.account_rest_api.dto.ErrorApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
 
 @SuppressWarnings("unused")
 @Tag(name = "Account", description = "Account api")
@@ -33,20 +31,19 @@ public interface AccountController {
                     responseCode = "200",
                     description = "Retrieved all accounts",
                     content = @Content(
-                            examples = @ExampleObject(
-                                    value = "{\"data\":[{\"id\":\"644cf9d5-c148-4bb5-bdcb-2c2c9725c200\",\"alias\":\"Savings Account\",\"balance\":120000.00},{\"id\":\"e63e7a68-9e5e-45ab-a833-5dec938f08a8\",\"alias\":\"Main Checking Account\",\"balance\":70000.00}],\"timestamp\":\"2025-08-25T03:10:53.429077076Z\",\"_links\":{\"create\":{\"href\":\"http://localhost/api/accounts\",\"type\":\"POST\"}}}"
-                            )
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AccountListResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "204",
-                    description = "Successful operation but there are no accounts registered",
+                    description = "No accounts found",
                     content = @Content(
                             schema = @Schema(hidden = true)
                     )
             )
     })
-    ResponseEntity<ApiResponseDTO<List<AccountDTO>>> getAllAccounts();
+    ResponseEntity<AccountListResponseDTO> getAllAccounts();
 
     /**
      * GET specific account
@@ -62,38 +59,50 @@ public interface AccountController {
                     responseCode = "200",
                     description = "Account retrieved",
                     content = @Content(
-                            examples = @ExampleObject(
-                                    value = "{\"data\":{\"id\":\"644cf9d5-c148-4bb5-bdcb-2c2c9725c200\",\"alias\":\"Savings Account\",\"balance\":120000.00},\"_links\":{\"self\":{\"href\":\"http://localhost/api/accounts/644cf9d5-c148-4bb5-bdcb-2c2c9725c200\"},\"update\":{\"href\":\"http://localhost/api/accounts/644cf9d5-c148-4bb5-bdcb-2c2c9725c200\",\"type\":\"PATCH\"},\"delete\":{\"href\":\"http://localhost/api/accounts/644cf9d5-c148-4bb5-bdcb-2c2c9725c200\",\"type\":\"DELETE\"},\"all_accounts\":{\"href\":\"http://localhost/api/accounts\"}}}"
-                            )
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AccountResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Account not found",
                     content = @Content(
-                            examples = @ExampleObject(
-                                    value = "{\"message\":[\"errorMessage\"],\"timestamp\":\"2025-08-25T03:35:22.902263297Z\"}"
-                            )
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorApiResponse.class)
                     )
             ),
     })
-    ResponseEntity<ApiResponseDTO<AccountDTO>> getAccountById(@PathVariable String id);
+    ResponseEntity<AccountResponseDTO> getAccountById(@PathVariable Long id);
 
     /**
      * POST Creates new account resource
      *
      * @param dto new account data
-     * @return created account
+     * @return created an account
      */
     @Operation(
             summary = "Creates an account",
             description = "Saves account data in datasource")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Successful operation"),
-            @ApiResponse(responseCode = "400", description = "Resource not created due to functional error")
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Successful operation",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AccountResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Resource not created due to functional error",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorApiResponse.class)
+                    )
+            )
     })
-    ResponseEntity<ApiResponseDTO<AccountDTO>> createNewAccount(
-            @RequestBody AccountDTO dto
+    ResponseEntity<AccountResponseDTO> createNewAccount(
+            @RequestBody CreateAccount dto
     );
 
     /**
@@ -108,12 +117,34 @@ public interface AccountController {
             description = "Updated selected account balance"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "400", description = "Balance was not updated due to functional error"),
-            @ApiResponse(responseCode = "404", description = "Account not found"),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful operation",
+                    content = @Content(
+                            schema = @Schema(implementation = AccountResponseDTO.class),
+                            mediaType = MediaType.APPLICATION_JSON_VALUE
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Balance was not updated due to functional error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorApiResponse.class),
+                            mediaType = MediaType.APPLICATION_JSON_VALUE
+                    )
+
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Account not found",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorApiResponse.class),
+                            mediaType = MediaType.APPLICATION_JSON_VALUE
+                    )
+            ),
     })
-    ResponseEntity<ApiResponseDTO<AccountDTO>> updateAccountBalance(
-            @PathVariable String id, @RequestBody AccountDTO dto
+    ResponseEntity<AccountResponseDTO> updateAccountBalance(
+            @PathVariable Long id, @RequestBody UpdateBalance dto
     );
 
     /**
@@ -127,6 +158,6 @@ public interface AccountController {
                     schema = @Schema(hidden = true)
             )),
     })
-    ResponseEntity<Void> deleteAccount(@PathVariable String id);
+    ResponseEntity<Void> deleteAccount(@PathVariable Long id);
 
 }

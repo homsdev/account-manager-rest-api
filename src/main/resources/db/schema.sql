@@ -1,22 +1,27 @@
 CREATE TABLE IF NOT EXISTS cli_account (
-    account_id VARCHAR(60) NOT NULL PRIMARY KEY,
+    account_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     balance DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0),
-    alias VARCHAR(60) NOT NULL
+    alias VARCHAR(60) NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    creation_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS cli_category(
-    category_id VARCHAR(60) NOT NULL PRIMARY KEY,
-    category_name VARCHAR(255) NOT NULL
+    category_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(255) NOT NULL,
+    creation_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS cli_transaction(
-    transaction_id VARCHAR(60) NOT NULL PRIMARY KEY,
-    transaction_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (transaction_amount > 0),
-    transaction_type VARCHAR(10) NOT NULL CHECK (transaction_type IN ('EXPENSE', 'INCOME')),
-    transaction_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    transaction_alias VARCHAR(60),
-    transaction_account VARCHAR(60) NOT NULL,
-    transaction_category VARCHAR(60) NOT NULL,
+    transaction_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (amount > 0),
+    type VARCHAR(10) NOT NULL CHECK (type IN ('EXPENSE', 'INCOME')),
+    date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    alias VARCHAR(60),
+    transaction_account INT NOT NULL,
+    transaction_category INT NOT NULL,
     FOREIGN KEY (transaction_account) REFERENCES cli_account(account_id)
     ON UPDATE CASCADE,
     FOREIGN KEY (transaction_category) REFERENCES cli_category(category_id)

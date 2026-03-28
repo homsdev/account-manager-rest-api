@@ -9,15 +9,12 @@ import java.util.Optional;
 public interface AccountRepository {
     List<Account> findAll();
 
-    Optional<Account> findById(String id);
+    Optional<Account> findById(Long id);
 
     Optional<Account> save(Account account);
 
-    Integer deleteById(String id);
+    Integer deleteById(Long id);
 
     Optional<Account> updateBalance(Account account);
 
-    default List<Account> findAll(Integer pageSize, Integer pageNumber) {
-        return Collections.emptyList();
-    }
 }
