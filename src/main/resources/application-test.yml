@@ -5,8 +5,8 @@ spring:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASS}
-    driver-class-name: org.mariadb.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
   jpa:
-    dialect: org.hibernate.dialect.MariaDBDialect
+    dialect: org.hibernate.dialect.PostgreSQLDialect

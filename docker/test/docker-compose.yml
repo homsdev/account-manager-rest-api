@@ -1,34 +1,18 @@
 version: '3.8'#Version of docker composes
 services: # containers
-  account-manager-rest-db:
-    image: 'mariadb:12.0.2'
-    container_name: account-manager-mariadb
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - 3306:3306
+      - 5432:5432
     volumes:
-      - account-data:/var/lib/mysql
-      - ./initdb:/docker-entrypoint-initdb.d:rw
-    environment:
-      MYSQL_ROOT_PASSWORD: admin
-    networks:
-      - app-network
-  account-manager-rest-spring-app:
-    build:
-      context: ../../
-      dockerfile: docker/Dockerfile
-    container_name: account-manager-backend
-    environment:
-      - DB_URL=jdbc:mariadb://account-manager-mariadb:3306/account_manager_mariadb
-      - DB_USER=root
-      - DB_PASS=admin
-      - SPRING_PROFILES_ACTIVE=test
-    ports:
-      - '8080:8080'
-    networks:
-      - app-network
-    depends_on:
-      - account-manager-rest-db
+      - postgres-data:/var/lib/postgresql
+      - ./db:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
+
 volumes:
-  account-data:
-networks:
-  app-network:
+  postgres-data:
